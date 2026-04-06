@@ -3,8 +3,12 @@ package com.anordine.completions.api.webflux.model;
 import com.anordine.completions.api.webflux.model.enums.modality.CompletionModality;
 import com.anordine.completions.api.webflux.model.enums.prompt.CompletionPromptCacheRetention;
 import com.anordine.completions.api.webflux.model.enums.resoning.CompletionReasoningEffort;
+import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
 import com.anordine.completions.api.webflux.model.enums.verbosity.CompletionVerbosity;
 import com.anordine.completions.api.webflux.model.format.abs.CompletionResponseFormat;
+import com.anordine.completions.api.webflux.model.message.*;
+import com.anordine.completions.api.webflux.model.tool.CompletionFunctionDefinition;
+import com.anordine.completions.api.webflux.model.tool.CompletionFunctionTool;
 import com.anordine.completions.api.webflux.model.message.abs.CompletionMessage;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionTool;
 import com.anordine.completions.api.webflux.model.toolchoice.abs.ToolChoiceOptionInterface;
@@ -14,7 +18,10 @@ import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.annotation.JsonNaming;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionRequest {
@@ -208,5 +215,188 @@ public class CompletionRequest {
 
     public void setTopLogprobs(Integer topLogprobs) {
         this.topLogprobs = topLogprobs;
+    }
+
+    public static CompletionRequest create(String message) {
+        return new CompletionRequest().addUserMessage(message);
+    }
+
+    public static CompletionRequest create(String message, CompletionRole role) {
+        return new CompletionRequest().addMessage(message, role);
+    }
+
+    public static CompletionRequest create(String model, String message) {
+        return new CompletionRequest()
+                .withModel(model)
+                .addUserMessage(message);
+    }
+
+    public static CompletionRequest create(String model, String message, CompletionRole role) {
+        return new CompletionRequest()
+                .withModel(model)
+                .addMessage(message, role);
+    }
+
+    public CompletionRequest withModel(String model) {
+        this.model = model;
+        return this;
+    }
+
+    public CompletionRequest withTemperature(Double temperature) {
+        this.temperature = temperature;
+        return this;
+    }
+
+    public CompletionRequest withReasoningEffort(CompletionReasoningEffort reasoningEffort) {
+        this.reasoningEffort = reasoningEffort;
+        return this;
+    }
+
+    public CompletionRequest withResponseFormat(CompletionResponseFormat responseFormat) {
+        this.responseFormat = responseFormat;
+        return this;
+    }
+
+    public CompletionRequest withToolChoice(ToolChoiceOptionInterface toolChoice) {
+        this.toolChoice = toolChoice;
+        return this;
+    }
+
+    public CompletionRequest withParallelToolCalls(Boolean parallelToolCalls) {
+        this.parallelToolCalls = parallelToolCalls;
+        return this;
+    }
+
+    public CompletionRequest withStore(Boolean store) {
+        this.store = store;
+        return this;
+    }
+
+    public CompletionRequest addMessage(CompletionMessage completionMessage) {
+        if (completionMessage == null) {
+            throw new IllegalArgumentException("completionMessage must not be null");
+        }
+        if (messages == null) {
+            this.messages = new ArrayList<>();
+        }
+        messages.add(completionMessage);
+        return this;
+    }
+
+    public CompletionRequest addMessages(CompletionMessage... completionMessages) {
+        if (completionMessages == null) {
+            return this;
+        }
+        Arrays.stream(completionMessages).forEach(this::addMessage);
+        return this;
+    }
+
+    public CompletionRequest addMessage(String content, CompletionRole role) {
+        if (role == null) {
+            role = CompletionRole.USER;
+        }
+
+        CompletionMessage completionMessage;
+
+        switch (role) {
+            case USER -> completionMessage = new CompletionUserMessage(content);
+            case SYSTEM -> completionMessage = new CompletionSystemMessage(content);
+            case DEVELOPER -> completionMessage = new CompletionDeveloperMessage(content);
+            case TOOL -> completionMessage = new CompletionToolMessage(content);
+            case FUNCTION -> completionMessage = new CompletionFunctionMessage(content);
+            case ASSISTANT -> completionMessage = new CompletionAssistantMessage(content);
+            default -> throw new IllegalArgumentException("invalid role");
+        }
+
+        this.addMessage(completionMessage);
+        return this;
+    }
+
+    public CompletionRequest addDeveloperMessage(String content) {
+        return this.addMessage(new CompletionDeveloperMessage(content));
+    }
+
+    public CompletionRequest addDeveloperMessage(String content, String name) {
+        return this.addMessage(new CompletionDeveloperMessage(content, name));
+    }
+
+    public CompletionRequest addSystemMessage(String content) {
+        return this.addMessage(new CompletionSystemMessage(content));
+    }
+
+    public CompletionRequest addSystemMessage(String content, String name) {
+        return this.addMessage(new CompletionSystemMessage(content, name));
+    }
+
+    public CompletionRequest addUserMessage(String content) {
+        return this.addMessage(new CompletionUserMessage(content));
+    }
+
+    public CompletionRequest addUserMessage(String content, String name) {
+        return this.addMessage(new CompletionUserMessage(content, name));
+    }
+
+    public CompletionRequest addAssistantMessage(String content) {
+        return this.addMessage(new CompletionAssistantMessage(content));
+    }
+
+    public CompletionRequest addAssistantMessage(String content, String name) {
+        return this.addMessage(new CompletionAssistantMessage(content, name));
+    }
+
+    public CompletionRequest addFunctionMessage(String name, String content) {
+        return this.addMessage(new CompletionFunctionMessage(content, name));
+    }
+
+    public CompletionRequest addToolMessage(String toolCallId, String content) {
+        CompletionToolMessage toolMessage = new CompletionToolMessage(content);
+        toolMessage.setToolCallId(toolCallId);
+        return this.addMessage(toolMessage);
+    }
+
+    public CompletionRequest addTool(CompletionTool tool) {
+        if (tool == null) {
+            throw new IllegalArgumentException("tool must not be null");
+        }
+        if (tools == null) {
+            this.tools = new ArrayList<>();
+        }
+        tools.add(tool);
+        return this;
+    }
+
+    public CompletionRequest addTools(CompletionTool... completionTools) {
+        if (completionTools == null) {
+            return this;
+        }
+        Arrays.stream(completionTools).forEach(this::addTool);
+        return this;
+    }
+
+    public CompletionRequest addModality(CompletionModality modality) {
+        if (modality == null) {
+            throw new IllegalArgumentException("modality must not be null");
+        }
+        if (modalities == null) {
+            this.modalities = new ArrayList<>();
+        }
+        modalities.add(modality);
+        return this;
+    }
+
+    public CompletionRequest addFunctionTool(CompletionFunctionDefinition functionDefinition) {
+        return this.addTool(new CompletionFunctionTool(functionDefinition));
+    }
+
+    public CompletionRequest addFunctionTool(String name, String description, java.util.Map<String, Object> parameters) {
+        CompletionFunctionDefinition functionDefinition = new CompletionFunctionDefinition();
+        functionDefinition.setName(name);
+        functionDefinition.setDescription(description);
+        functionDefinition.setParameters(parameters);
+        return this.addFunctionTool(functionDefinition);
+    }
+
+    public CompletionRequest addMessage(String message) {
+        return this.addUserMessage(message);
     }
 }

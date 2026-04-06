@@ -37,6 +37,25 @@ class MyConfiguration {
 }
 ```
 
+## Convenience Usage
+
+For straightforward text chat calls you can build requests fluently and wrap any configured compatible `WebClient` with `CompletionService`.
+
+```java
+WebClient openAiWebClient = applicationContext.getBean("openAiWebClient", WebClient.class);
+
+CompletionService completionService = new CompletionService(openAiWebClient);
+
+CompletionResponse response = completionService.callCompletionsApi(
+        new CompletionRequest()
+                .withModel("gpt-5.4")
+                .addDeveloperMessage("Be concise")
+                .addUserMessage("Write a haiku about WebFlux")
+).block();
+```
+
+There are also shorter overloads for common cases such as `callCompletionsApi("gpt-5.4", "Hello")` and helpers like `CompletionRequest.create("gpt-5.4", "Hello")`.
+
 ## Chat Completions Coverage
 
 Some documented Chat Completions features are still out of scope for the current DTO model set.
