@@ -26,12 +26,14 @@ class CompletionResponseFormatJacksonTest {
         String json = """
                 {
                   "type": "json_schema",
-                  "name": "vehicle_result",
-                  "description": "Vehicle result payload",
-                  "schema": {
-                    "type": "object"
-                  },
-                  "strict": true
+                  "json_schema": {
+                    "name": "vehicle_result",
+                    "description": "Vehicle result payload",
+                    "schema": {
+                      "type": "object"
+                    },
+                    "strict": true
+                  }
                 }
                 """;
 
@@ -40,9 +42,27 @@ class CompletionResponseFormatJacksonTest {
 
         CompletionResponseFormatJsonSchema jsonSchema =
                 assertInstanceOf(CompletionResponseFormatJsonSchema.class, responseFormat);
-        assertEquals("vehicle_result", jsonSchema.getName());
-        assertEquals("Vehicle result payload", jsonSchema.getDescription());
-        assertEquals(Map.of("type", "object"), jsonSchema.getSchema());
-        assertEquals(Boolean.TRUE, jsonSchema.getStrict());
+        assertEquals("vehicle_result", jsonSchema.getJsonSchema().getName());
+        assertEquals("Vehicle result payload", jsonSchema.getJsonSchema().getDescription());
+        assertEquals(Map.of("type", "object"), jsonSchema.getJsonSchema().getSchema());
+        assertEquals(Boolean.TRUE, jsonSchema.getJsonSchema().getStrict());
+    }
+
+    @Test
+    void serializesJsonSchemaUsingNestedWireShape() throws Exception {
+        CompletionResponseFormatJsonSchema responseFormat = new CompletionResponseFormatJsonSchema(
+                new CompletionResponseFormatJsonSchemaDefinition(
+                        "vehicle_result",
+                        "Vehicle result payload",
+                        Map.of("type", "object"),
+                        true
+                )
+        );
+
+        String json = objectMapper.writeValueAsString(responseFormat);
+
+        assertTrue(json.contains("\"type\":\"json_schema\""));
+        assertTrue(json.contains("\"json_schema\":"));
+        assertTrue(json.contains("\"name\":\"vehicle_result\""));
     }
 }

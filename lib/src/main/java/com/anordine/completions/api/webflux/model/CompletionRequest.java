@@ -1,12 +1,16 @@
 package com.anordine.completions.api.webflux.model;
 
 import com.anordine.completions.api.webflux.model.enums.modality.CompletionModality;
+import com.anordine.completions.api.webflux.model.enums.prompt.CompletionPromptCacheRetention;
 import com.anordine.completions.api.webflux.model.enums.resoning.CompletionReasoningEffort;
 import com.anordine.completions.api.webflux.model.enums.verbosity.CompletionVerbosity;
 import com.anordine.completions.api.webflux.model.format.abs.CompletionResponseFormat;
 import com.anordine.completions.api.webflux.model.message.abs.CompletionMessage;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionTool;
+import com.anordine.completions.api.webflux.model.toolchoice.abs.ToolChoiceOptionInterface;
+import com.anordine.completions.api.webflux.model.toolchoice.jackson.ToolChoiceOptionInterfaceDeserializer;
 import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
@@ -22,13 +26,17 @@ public class CompletionRequest {
     private Boolean parallelToolCalls;
     private Double presencePenalty;
     private String promptCacheKey;
+    private CompletionPromptCacheRetention promptCacheRetention;
     private CompletionReasoningEffort reasoningEffort;
     private CompletionResponseFormat responseFormat;
     private String safetyIdentifier;
     private Boolean store;
     private Double temperature;
-    private String toolChoice;
+    @JsonDeserialize(using = ToolChoiceOptionInterfaceDeserializer.class)
+    private ToolChoiceOptionInterface toolChoice;
     private List<CompletionTool> tools;
+    private Boolean logprobs;
+    private Integer topLogprobs;
     private Double topP;
     private CompletionVerbosity verbosity;
 
@@ -56,11 +64,11 @@ public class CompletionRequest {
         this.temperature = temperature;
     }
 
-    public String getToolChoice() {
+    public ToolChoiceOptionInterface getToolChoice() {
         return toolChoice;
     }
 
-    public void setToolChoice(String toolChoice) {
+    public void setToolChoice(ToolChoiceOptionInterface toolChoice) {
         this.toolChoice = toolChoice;
     }
 
@@ -110,6 +118,14 @@ public class CompletionRequest {
 
     public void setPromptCacheKey(String promptCacheKey) {
         this.promptCacheKey = promptCacheKey;
+    }
+
+    public CompletionPromptCacheRetention getPromptCacheRetention() {
+        return promptCacheRetention;
+    }
+
+    public void setPromptCacheRetention(CompletionPromptCacheRetention promptCacheRetention) {
+        this.promptCacheRetention = promptCacheRetention;
     }
 
     public Double getPresencePenalty() {
@@ -174,5 +190,21 @@ public class CompletionRequest {
 
     public void setMessages(List<CompletionMessage> messages) {
         this.messages = messages;
+    }
+
+    public Boolean getLogprobs() {
+        return logprobs;
+    }
+
+    public void setLogprobs(Boolean logprobs) {
+        this.logprobs = logprobs;
+    }
+
+    public Integer getTopLogprobs() {
+        return topLogprobs;
+    }
+
+    public void setTopLogprobs(Integer topLogprobs) {
+        this.topLogprobs = topLogprobs;
     }
 }

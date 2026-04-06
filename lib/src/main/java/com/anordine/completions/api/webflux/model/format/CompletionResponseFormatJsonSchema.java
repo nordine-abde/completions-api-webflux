@@ -3,59 +3,24 @@ package com.anordine.completions.api.webflux.model.format;
 import com.anordine.completions.api.webflux.model.enums.format.CompletionResponseFormatType;
 import com.anordine.completions.api.webflux.model.format.abs.CompletionResponseFormat;
 
-import java.util.Map;
-
 public class CompletionResponseFormatJsonSchema extends CompletionResponseFormat {
 
     protected CompletionResponseFormatJsonSchema() {
         super(CompletionResponseFormatType.JSON_SCHEMA);
     }
 
-    private String name;
-    private String description;
-    private Map<String, Object> schema;
-    private Boolean strict;
+    private CompletionResponseFormatJsonSchemaDefinition jsonSchema;
 
-    public CompletionResponseFormatJsonSchema(String name,
-                                              String description,
-                                              Map<String, Object> schema,
-                                              Boolean strict) {
+    public CompletionResponseFormatJsonSchema(CompletionResponseFormatJsonSchemaDefinition jsonSchema) {
         super(CompletionResponseFormatType.JSON_SCHEMA);
-        this.name = name;
-        this.description = description;
-        this.schema = schema;
-        this.strict = strict;
+        this.jsonSchema = jsonSchema;
     }
 
-    public String getName() {
-        return name;
+    public CompletionResponseFormatJsonSchemaDefinition getJsonSchema() {
+        return jsonSchema;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Map<String, Object> getSchema() {
-        return schema;
-    }
-
-    public void setSchema(Map<String, Object> schema) {
-        this.schema = schema;
-    }
-
-    public Boolean getStrict() {
-        return strict;
-    }
-
-    public void setStrict(Boolean strict) {
-        this.strict = strict;
+    public void setJsonSchema(CompletionResponseFormatJsonSchemaDefinition jsonSchema) {
+        this.jsonSchema = jsonSchema;
     }
 }

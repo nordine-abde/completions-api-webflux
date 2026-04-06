@@ -1,0 +1,29 @@
+package com.anordine.completions.api.webflux.model.tool.format;
+
+import com.anordine.completions.api.webflux.model.enums.toolformat.CompletionCustomToolFormatType;
+import com.anordine.completions.api.webflux.model.tool.format.abs.CompletionCustomToolFormat;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class CompletionCustomToolGrammarFormat extends CompletionCustomToolFormat {
+
+    private CompletionGrammarDefinition grammar;
+
+    public CompletionCustomToolGrammarFormat() {
+        super(CompletionCustomToolFormatType.GRAMMAR);
+    }
+
+    public CompletionCustomToolGrammarFormat(CompletionGrammarDefinition grammar) {
+        super(CompletionCustomToolFormatType.GRAMMAR);
+        this.grammar = grammar;
+    }
+
+    public CompletionGrammarDefinition getGrammar() {
+        return grammar;
+    }
+
+    public void setGrammar(CompletionGrammarDefinition grammar) {
+        this.grammar = grammar;
+    }
+}

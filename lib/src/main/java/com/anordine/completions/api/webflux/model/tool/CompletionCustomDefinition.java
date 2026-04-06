@@ -1,5 +1,6 @@
 package com.anordine.completions.api.webflux.model.tool;
 
+import com.anordine.completions.api.webflux.model.tool.format.abs.CompletionCustomToolFormat;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
@@ -8,7 +9,7 @@ public class CompletionCustomDefinition {
 
     private String name;
     private String description;
-    private Object format;
+    private CompletionCustomToolFormat format;
 
     public String getName() {
         return name;
@@ -26,11 +27,11 @@ public class CompletionCustomDefinition {
         this.description = description;
     }
 
-    public Object getFormat() {
+    public CompletionCustomToolFormat getFormat() {
         return format;
     }
 
-    public void setFormat(Object format) {
+    public void setFormat(CompletionCustomToolFormat format) {
         this.format = format;
     }
 }

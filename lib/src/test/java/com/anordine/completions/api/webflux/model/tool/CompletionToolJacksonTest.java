@@ -1,10 +1,11 @@
 package com.anordine.completions.api.webflux.model.tool;
 
+import com.anordine.completions.api.webflux.model.enums.toolformat.CompletionGrammarSyntax;
+import com.anordine.completions.api.webflux.model.tool.format.CompletionCustomToolGrammarFormat;
+import com.anordine.completions.api.webflux.model.tool.format.CompletionCustomToolTextFormat;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionTool;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -33,7 +34,11 @@ class CompletionToolJacksonTest {
                     "name": "sql_runner",
                     "description": "Execute SQL queries",
                     "format": {
-                      "type": "grammar"
+                      "type": "grammar",
+                      "grammar": {
+                        "definition": "start: /.+/",
+                        "syntax": "regex"
+                      }
                     }
                   }
                 }
@@ -44,6 +49,21 @@ class CompletionToolJacksonTest {
         CompletionCustomTool customTool = assertInstanceOf(CompletionCustomTool.class, tool);
         assertEquals("sql_runner", customTool.getCustom().getName());
         assertEquals("Execute SQL queries", customTool.getCustom().getDescription());
-        assertEquals(Map.of("type", "grammar"), customTool.getCustom().getFormat());
+        CompletionCustomToolGrammarFormat format =
+                assertInstanceOf(CompletionCustomToolGrammarFormat.class, customTool.getCustom().getFormat());
+        assertEquals("start: /.+/", format.getGrammar().getDefinition());
+        assertEquals(CompletionGrammarSyntax.REGEX, format.getGrammar().getSyntax());
+    }
+
+    @Test
+    void serializesTextCustomToolFormatUsingWireType() throws Exception {
+        CompletionCustomDefinition customDefinition = new CompletionCustomDefinition();
+        customDefinition.setName("sql_runner");
+        customDefinition.setFormat(new CompletionCustomToolTextFormat());
+
+        String json = objectMapper.writeValueAsString(new CompletionCustomTool(customDefinition));
+
+        assertTrue(json.contains("\"type\":\"custom\""));
+        assertTrue(json.contains("\"format\":{\"type\":\"text\"}"));
     }
 }
