@@ -1,9 +1,9 @@
-package com.anordine.completions.api.webflux.tools.abs;
+package com.anordine.completions.api.webflux.tool.abs;
 
 import com.anordine.completions.api.webflux.enums.tool.CompletionToolType;
 import com.anordine.completions.api.webflux.enums.tool.CompletionToolTypeValue;
-import com.anordine.completions.api.webflux.tools.CompletionCustomToolCall;
-import com.anordine.completions.api.webflux.tools.CompletionFunctionToolCall;
+import com.anordine.completions.api.webflux.tool.CompletionMessageCustomToolCall;
+import com.anordine.completions.api.webflux.tool.CompletionMessageFunctionToolCall;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -17,11 +17,11 @@ import tools.jackson.databind.annotation.JsonNaming;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(
-                value = CompletionFunctionToolCall.class,
+                value = CompletionMessageFunctionToolCall.class,
                 name = CompletionToolTypeValue.FUNCTION
         ),
         @JsonSubTypes.Type(
-                value = CompletionCustomToolCall.class,
+                value = CompletionMessageCustomToolCall.class,
                 name = CompletionToolTypeValue.CUSTOM
         ),
 })

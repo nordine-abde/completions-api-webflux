@@ -27,9 +27,152 @@ public class CompletionsRequest {
     private String safetyIdentifier;
     private Boolean store;
     private Double temperature;
-    //private CompletionTool tools;
+    private CompletionTool tools;
     private Integer topLogProbs;
     private Double topP;
     private CompletionVerbosity verbosity;
 
+    public CompletionVerbosity getVerbosity() {
+        return verbosity;
+    }
+
+    public void setVerbosity(CompletionVerbosity verbosity) {
+        this.verbosity = verbosity;
+    }
+
+    public Double getTopP() {
+        return topP;
+    }
+
+    public void setTopP(Double topP) {
+        this.topP = topP;
+    }
+
+    public Integer getTopLogProbs() {
+        return topLogProbs;
+    }
+
+    public void setTopLogProbs(Integer topLogProbs) {
+        this.topLogProbs = topLogProbs;
+    }
+
+    public Double getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(Double temperature) {
+        this.temperature = temperature;
+    }
+
+    public Boolean getStore() {
+        return store;
+    }
+
+    public void setStore(Boolean store) {
+        this.store = store;
+    }
+
+    public String getSafetyIdentifier() {
+        return safetyIdentifier;
+    }
+
+    public void setSafetyIdentifier(String safetyIdentifier) {
+        this.safetyIdentifier = safetyIdentifier;
+    }
+
+    public CompletionResponseFormat getResponseFormat() {
+        return responseFormat;
+    }
+
+    public void setResponseFormat(CompletionResponseFormat responseFormat) {
+        this.responseFormat = responseFormat;
+    }
+
+    public CompletionReasoningEffort getReasoningEffort() {
+        return reasoningEffort;
+    }
+
+    public void setReasoningEffort(CompletionReasoningEffort reasoningEffort) {
+        this.reasoningEffort = reasoningEffort;
+    }
+
+    public String getPromptCacheKey() {
+        return promptCacheKey;
+    }
+
+    public void setPromptCacheKey(String promptCacheKey) {
+        this.promptCacheKey = promptCacheKey;
+    }
+
+    public Double getPresencePenality() {
+        return presencePenality;
+    }
+
+    public void setPresencePenality(Double presencePenality) {
+        this.presencePenality = presencePenality;
+    }
+
+    public Boolean getParallelToolCalls() {
+        return parallelToolCalls;
+    }
+
+    public void setParallelToolCalls(Boolean parallelToolCalls) {
+        this.parallelToolCalls = parallelToolCalls;
+    }
+
+    public Integer getN() {
+        return n;
+    }
+
+    public void setN(Integer n) {
+        this.n = n;
+    }
+
+    public List<CompletionModality> getModalities() {
+        return modalities;
+    }
+
+    public void setModalities(List<CompletionModality> modalities) {
+        this.modalities = modalities;
+    }
+
+    public Integer getMaxCompletionTokens() {
+        return maxCompletionTokens;
+    }
+
+    public void setMaxCompletionTokens(Integer maxCompletionTokens) {
+        this.maxCompletionTokens = maxCompletionTokens;
+    }
+
+    public Boolean getLogprobs() {
+        return logprobs;
+    }
+
+    public void setLogprobs(Boolean logprobs) {
+        this.logprobs = logprobs;
+    }
+
+    public Double getFrequencyPenalty() {
+        return frequencyPenalty;
+    }
+
+    public void setFrequencyPenalty(Double frequencyPenalty) {
+        this.frequencyPenalty = frequencyPenalty;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public List<CompletionMessage> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<CompletionMessage> messages) {
+        this.messages = messages;
+    }
 }

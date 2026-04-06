@@ -1,18 +1,18 @@
-package com.anordine.completions.api.webflux.tools;
+package com.anordine.completions.api.webflux.tool;
 
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionCustom {
+public class CompletionMessageCustomTool {
 
     private String input;
     private String name;
 
-    public CompletionCustom() {
+    public CompletionMessageCustomTool() {
     }
 
-    public CompletionCustom(String input, String name) {
+    public CompletionMessageCustomTool(String input, String name) {
         this.input = input;
         this.name = name;
     }
