@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,7 +60,6 @@ class WebClientConfigurationTest {
                 "anordine.completions-api-webflux.custom.local-llm.secret-key", "local-secret"
         )));
         context.registerBean("localLlm", String.class, () -> "collision");
-        context.registerBean(WebClient.Builder.class, WebClient::builder);
         context.register(WebClientConfiguration.class);
 
         try {
@@ -69,10 +69,43 @@ class WebClientConfigurationTest {
         }
     }
 
+    @Test
+    void shouldFailWhenTwoCustomNamesNormalizeToSameBeanName() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(
+                "anordine.completions-api-webflux.custom.local-llm.autoconfigure", "true",
+                "anordine.completions-api-webflux.custom.local-llm.base-url", "http://localhost:1234/v1",
+                "anordine.completions-api-webflux.custom.local-llm.secret-key", "local-secret",
+                "anordine.completions-api-webflux.custom.local_llm.autoconfigure", "true",
+                "anordine.completions-api-webflux.custom.local_llm.base-url", "http://localhost:4321/v1",
+                "anordine.completions-api-webflux.custom.local_llm.secret-key", "other-secret"
+        )));
+        context.register(WebClientConfiguration.class);
+
+        try {
+            assertThrows(BeanCreationException.class, context::refresh);
+        } finally {
+            context.close();
+        }
+    }
+
+    @Test
+    void shouldCreateDefaultBuilderWhenNoneIsProvided() {
+        assertDoesNotThrow(() -> {
+            try (AnnotationConfigApplicationContext context = createContext(Map.of(
+                    "anordine.completions-api-webflux.custom.local-llm.autoconfigure", "true",
+                    "anordine.completions-api-webflux.custom.local-llm.base-url", "http://localhost:1234/v1",
+                    "anordine.completions-api-webflux.custom.local-llm.secret-key", "local-secret"
+            ))) {
+                assertTrue(context.containsBean("builder"));
+                assertTrue(context.containsBean("localLlm"));
+            }
+        });
+    }
+
     private AnnotationConfigApplicationContext createContext(Map<String, Object> properties) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", properties));
-        context.registerBean(WebClient.Builder.class, WebClient::builder);
         context.register(WebClientConfiguration.class);
         context.refresh();
         return context;

@@ -2,22 +2,28 @@ package com.anordine.completions.api.webflux.configuration;
 
 import com.anordine.completions.api.webflux.client.ClientProvider;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class CustomWebClientBeanFactoryPostProcessor implements BeanFactoryPostProcessor, EnvironmentAware {
+public final class CustomWebClientBeanFactoryPostProcessor
+        implements BeanDefinitionRegistryPostProcessor, EnvironmentAware, BeanFactoryAware {
 
     private Environment environment;
-
+    private ConfigurableListableBeanFactory beanFactory;
 
     @Override
     public void setEnvironment(Environment environment) {
@@ -25,36 +31,66 @@ public class CustomWebClientBeanFactoryPostProcessor implements BeanFactoryPostP
     }
 
     @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        if (!(beanFactory instanceof ConfigurableListableBeanFactory configurableBeanFactory)) {
+            throw new IllegalArgumentException("Custom WebClient registration requires a ConfigurableListableBeanFactory");
+        }
+        this.beanFactory = configurableBeanFactory;
+    }
+
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+        for (Map.Entry<String, WebClientProperties.CustomClient> entry : bindCustomClients().entrySet()) {
+            WebClientProperties.CustomClient config = entry.getValue();
+            if (config != null && config.isAutoconfigure()) {
+                registerCustomWebClient(registry, entry.getKey(), config);
+            }
+        }
+    }
+
+    @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        Map<String, WebClientProperties.CustomClient> customClients = Binder.get(environment)
+        //No need for it, but required by interface
+    }
+
+    private Map<String, WebClientProperties.CustomClient> bindCustomClients() {
+        Assert.state(environment != null, "Environment must be set before binding custom WebClient properties");
+        return Binder.get(environment)
                 .bind(
                         "anordine.completions-api-webflux.custom",
                         Bindable.mapOf(String.class, WebClientProperties.CustomClient.class)
                 )
                 .orElseGet(LinkedHashMap::new);
+    }
 
-        if (customClients.isEmpty()) {
-            return;
+    private void registerCustomWebClient(BeanDefinitionRegistry registry,
+                                         String propertyName,
+                                         WebClientProperties.CustomClient config) {
+        String beanName = toCamelCase(propertyName);
+        assertBeanNameAvailable(registry, beanName);
+
+        RootBeanDefinition beanDefinition = new RootBeanDefinition(WebClient.class);
+        beanDefinition.setInstanceSupplier(() -> createCustomWebClient(propertyName, config));
+        registry.registerBeanDefinition(beanName, beanDefinition);
+    }
+
+    private void assertBeanNameAvailable(BeanDefinitionRegistry registry, String beanName) {
+        Assert.state(beanFactory != null, "BeanFactory must be set before registering custom WebClient beans");
+        if (registry.containsBeanDefinition(beanName) || registry.isAlias(beanName) || beanFactory.containsSingleton(beanName)) {
+            throw new BeanCreationException("A bean named '" + beanName + "' already exists");
         }
+    }
 
-        WebClient.Builder builder = beanFactory.getBeanProvider(WebClient.Builder.class).getIfAvailable();
-        for (Map.Entry<String, WebClientProperties.CustomClient> entry : customClients.entrySet()) {
-            WebClientProperties.CustomClient config = entry.getValue();
-            String beanName = toCamelCase(entry.getKey());
-            if (config == null || !config.isAutoconfigure()) {
-                continue;
-            }
-            if (builder == null) {
-                throw new BeanCreationException("No WebClient.Builder bean available for custom WebClient '" + entry.getKey() + "'");
-            }
-            if (beanFactory.containsBean(beanName)) {
-                throw new BeanCreationException("A bean named '" + beanName + "' already exists");
-            }
-
-            beanFactory.registerSingleton(
-                    beanName,
-                    ClientProvider.buildCompletionsWebClient(builder, config.getBaseUrl(), config.getSecretKey())
+    private WebClient createCustomWebClient(String propertyName, WebClientProperties.CustomClient config) {
+        Assert.state(beanFactory != null, "BeanFactory must be set before creating custom WebClient beans");
+        try {
+            return ClientProvider.buildCompletionsWebClient(
+                    beanFactory.getBean(WebClient.Builder.class),
+                    config.getBaseUrl(),
+                    config.getSecretKey()
             );
+        } catch (BeansException exception) {
+            throw new BeanCreationException("Failed to create custom WebClient '" + propertyName + "'", exception);
         }
     }
 
@@ -84,6 +120,4 @@ public class CustomWebClientBeanFactoryPostProcessor implements BeanFactoryPostP
 
         return beanName.toString();
     }
-
-
 }

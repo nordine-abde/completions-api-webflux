@@ -2,9 +2,9 @@ package com.anordine.completions.api.webflux.configuration;
 
 import com.anordine.completions.api.webflux.client.ClientProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,7 +15,7 @@ public class WebClientConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public WebClient.Builder builder(){
+    public WebClient.Builder builder() {
         return WebClient.builder();
     }
 
@@ -75,7 +75,7 @@ public class WebClientConfiguration {
     }
 
     @Bean
-    public static BeanFactoryPostProcessor customWebClientBeans() {
+    public static BeanDefinitionRegistryPostProcessor customWebClientBeans() {
         return new CustomWebClientBeanFactoryPostProcessor();
     }
 }
