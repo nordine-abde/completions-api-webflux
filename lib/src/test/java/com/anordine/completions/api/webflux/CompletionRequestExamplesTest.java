@@ -13,13 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class CompletionsRequestExamplesTest {
+class CompletionRequestExamplesTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void deserializesDefaultExample() throws Exception {
-        CompletionsRequest request = readExample("examples/default.json");
+        CompletionRequest request = readExample("examples/default.json");
 
         assertEquals("VAR_chat_model_id", request.getModel());
         assertNotNull(request.getMessages());
@@ -30,7 +30,7 @@ class CompletionsRequestExamplesTest {
 
     @Test
     void deserializesFunctionsExample() throws Exception {
-        CompletionsRequest request = readExample("examples/functions.json");
+        CompletionRequest request = readExample("examples/functions.json");
 
         assertEquals("gpt-5.4", request.getModel());
         assertEquals("auto", request.getToolChoice());
@@ -44,22 +44,11 @@ class CompletionsRequestExamplesTest {
         assertEquals(1, ((java.util.List<?>) tool.getFunction().getParameters().get("required")).size());
     }
 
-    @Test
-    void deserializesLogprobsExample() throws Exception {
-        CompletionsRequest request = readExample("examples/logprobs.json");
 
-        assertEquals("VAR_chat_model_id", request.getModel());
-        assertEquals(Boolean.TRUE, request.getLogprobs());
-        assertEquals(2, request.getTopLogprobs());
-        assertNotNull(request.getMessages());
-        assertEquals(1, request.getMessages().size());
-        assertInstanceOf(CompletionUserMessage.class, request.getMessages().get(0));
-    }
-
-    private CompletionsRequest readExample(String resourcePath) throws Exception {
+    private CompletionRequest readExample(String resourcePath) throws Exception {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
             assertNotNull(inputStream, "Missing test resource: " + resourcePath);
-            return objectMapper.readValue(inputStream, CompletionsRequest.class);
+            return objectMapper.readValue(inputStream, CompletionRequest.class);
         }
     }
 }

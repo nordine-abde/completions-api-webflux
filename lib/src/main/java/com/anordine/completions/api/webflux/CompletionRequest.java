@@ -11,12 +11,11 @@ import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionsRequest {
+public class CompletionRequest {
 
     private List<CompletionMessage> messages;
     private String model;
     private Double frequencyPenalty;
-    private Boolean logprobs;
     private Integer maxCompletionTokens;
     private List<CompletionModality> modalities;
     private Integer n;
@@ -30,7 +29,6 @@ public class CompletionsRequest {
     private Double temperature;
     private String toolChoice;
     private List<CompletionTool> tools;
-    private Integer topLogprobs;
     private Double topP;
     private CompletionVerbosity verbosity;
 
@@ -48,14 +46,6 @@ public class CompletionsRequest {
 
     public void setTopP(Double topP) {
         this.topP = topP;
-    }
-
-    public Integer getTopLogprobs() {
-        return topLogprobs;
-    }
-
-    public void setTopLogprobs(Integer topLogprobs) {
-        this.topLogprobs = topLogprobs;
     }
 
     public Double getTemperature() {
@@ -160,14 +150,6 @@ public class CompletionsRequest {
 
     public void setMaxCompletionTokens(Integer maxCompletionTokens) {
         this.maxCompletionTokens = maxCompletionTokens;
-    }
-
-    public Boolean getLogprobs() {
-        return logprobs;
-    }
-
-    public void setLogprobs(Boolean logprobs) {
-        this.logprobs = logprobs;
     }
 
     public Double getFrequencyPenalty() {
