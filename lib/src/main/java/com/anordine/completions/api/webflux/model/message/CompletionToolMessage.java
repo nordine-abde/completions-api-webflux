@@ -1,0 +1,32 @@
+package com.anordine.completions.api.webflux.model.message;
+
+import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
+import com.anordine.completions.api.webflux.model.message.abs.CompletionMessage;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class CompletionToolMessage extends CompletionMessage {
+
+    public CompletionToolMessage(String content) {
+        super(content, CompletionRole.TOOL);
+    }
+
+    public CompletionToolMessage(String content, String name) {
+        super(content, CompletionRole.TOOL, name);
+    }
+
+    public CompletionToolMessage() {
+        super(CompletionRole.TOOL);
+    }
+
+    private String toolCallId;
+
+    public String getToolCallId() {
+        return toolCallId;
+    }
+
+    public void setToolCallId(String toolCallId) {
+        this.toolCallId = toolCallId;
+    }
+}

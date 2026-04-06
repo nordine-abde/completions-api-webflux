@@ -1,8 +1,9 @@
 package com.anordine.completions.api.webflux;
 
-import com.anordine.completions.api.webflux.enums.finish.CompletionFinishReason;
-import com.anordine.completions.api.webflux.message.CompletionAssistantMessage;
-import com.anordine.completions.api.webflux.tool.CompletionMessageFunctionToolCall;
+import com.anordine.completions.api.webflux.model.CompletionResponse;
+import com.anordine.completions.api.webflux.model.enums.finish.CompletionFinishReason;
+import com.anordine.completions.api.webflux.model.message.CompletionAssistantMessage;
+import com.anordine.completions.api.webflux.model.tool.CompletionMessageFunctionToolCall;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 

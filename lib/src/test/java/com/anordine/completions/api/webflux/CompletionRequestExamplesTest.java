@@ -1,8 +1,9 @@
 package com.anordine.completions.api.webflux;
 
-import com.anordine.completions.api.webflux.message.CompletionDeveloperMessage;
-import com.anordine.completions.api.webflux.message.CompletionUserMessage;
-import com.anordine.completions.api.webflux.tool.CompletionFunctionTool;
+import com.anordine.completions.api.webflux.model.CompletionRequest;
+import com.anordine.completions.api.webflux.model.message.CompletionDeveloperMessage;
+import com.anordine.completions.api.webflux.model.message.CompletionUserMessage;
+import com.anordine.completions.api.webflux.model.tool.CompletionFunctionTool;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
