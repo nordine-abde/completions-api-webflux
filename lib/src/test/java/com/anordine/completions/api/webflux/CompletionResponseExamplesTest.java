@@ -31,12 +31,9 @@ class CompletionResponseExamplesTest {
         assertEquals(1, response.getChoices().size());
         assertEquals(0, response.getChoices().get(0).getIndex());
         assertEquals(CompletionFinishReason.STOP, response.getChoices().get(0).getFinishReason());
-        assertNull(response.getChoices().get(0).getLogprobs());
 
         CompletionAssistantMessage message = response.getChoices().get(0).getMessage();
         assertEquals("Hello! How can I assist you today?", message.getContent());
-        assertNotNull(message.getAnnotations());
-        assertEquals(0, message.getAnnotations().size());
 
         assertNotNull(response.getUsage());
         assertEquals(19, response.getUsage().getPromptTokens());

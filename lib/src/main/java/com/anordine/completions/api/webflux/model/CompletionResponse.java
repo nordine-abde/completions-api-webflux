@@ -2,11 +2,13 @@ package com.anordine.completions.api.webflux.model;
 
 import com.anordine.completions.api.webflux.model.message.CompletionChoices;
 import com.anordine.completions.api.webflux.model.usage.CompletionUsage;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionResponse {
 

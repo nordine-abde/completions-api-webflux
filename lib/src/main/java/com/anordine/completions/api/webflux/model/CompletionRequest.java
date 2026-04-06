@@ -9,11 +9,13 @@ import com.anordine.completions.api.webflux.model.message.abs.CompletionMessage;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionTool;
 import com.anordine.completions.api.webflux.model.toolchoice.abs.ToolChoiceOptionInterface;
 import com.anordine.completions.api.webflux.model.toolchoice.jackson.ToolChoiceOptionInterfaceDeserializer;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionRequest {
 

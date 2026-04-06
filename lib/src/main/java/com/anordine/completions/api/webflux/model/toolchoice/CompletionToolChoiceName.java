@@ -1,5 +1,8 @@
 package com.anordine.completions.api.webflux.model.toolchoice;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CompletionToolChoiceName {
 
     private String name;

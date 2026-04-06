@@ -2,11 +2,13 @@ package com.anordine.completions.api.webflux.model.toolchoice;
 
 import com.anordine.completions.api.webflux.model.enums.toolchoice.CompletionAllowedToolsMode;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionTool;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionAllowedTools {
 

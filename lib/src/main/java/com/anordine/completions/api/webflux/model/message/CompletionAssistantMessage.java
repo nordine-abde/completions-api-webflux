@@ -3,11 +3,13 @@ package com.anordine.completions.api.webflux.model.message;
 import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
 import com.anordine.completions.api.webflux.model.message.abs.CompletionMessage;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionToolCall;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionAssistantMessage extends CompletionMessage {
 
@@ -24,7 +26,6 @@ public class CompletionAssistantMessage extends CompletionMessage {
     }
 
     private String refusal;
-    private List<Object> annotations;
     private List<CompletionToolCall> toolCalls;
     private CompletionAudio audio;
 
@@ -36,16 +37,8 @@ public class CompletionAssistantMessage extends CompletionMessage {
         return toolCalls;
     }
 
-    public List<Object> getAnnotations() {
-        return annotations;
-    }
-
     public void setRefusal(String refusal) {
         this.refusal = refusal;
-    }
-
-    public void setAnnotations(List<Object> annotations) {
-        this.annotations = annotations;
     }
 
     public void setToolCalls(List<CompletionToolCall> toolCalls) {

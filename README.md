@@ -20,6 +20,9 @@ Some documented Chat Completions features are not present in this version yet.
 - image input content parts
 - audio input content parts
 - file input content parts
+- response `annotations`
+- response `logprobs`
+- response audio payload details beyond audio `id`
 - advanced prediction-related request DTOs
 - web search request DTOs
 - several optional advanced request fields still planned for a later version

@@ -1,28 +1,27 @@
 package com.anordine.completions.api.webflux.model.message;
 
 import com.anordine.completions.api.webflux.model.enums.finish.CompletionFinishReason;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionChoices {
 
     private CompletionFinishReason finishReason;
     private Integer index;
     private CompletionAssistantMessage message;
-    private Object logprobs;
 
     public CompletionChoices() {
     }
 
     public CompletionChoices(CompletionFinishReason finishReason,
                              Integer index,
-                             CompletionAssistantMessage message,
-                             Object logprobs) {
+                             CompletionAssistantMessage message) {
         this.finishReason = finishReason;
         this.index = index;
         this.message = message;
-        this.logprobs = logprobs;
     }
 
     public CompletionFinishReason getFinishReason() {
@@ -47,13 +46,5 @@ public class CompletionChoices {
 
     public void setMessage(CompletionAssistantMessage message) {
         this.message = message;
-    }
-
-    public Object getLogprobs() {
-        return logprobs;
-    }
-
-    public void setLogprobs(Object logprobs) {
-        this.logprobs = logprobs;
     }
 }

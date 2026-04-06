@@ -4,11 +4,13 @@ import com.anordine.completions.api.webflux.model.enums.toolformat.CompletionCus
 import com.anordine.completions.api.webflux.model.enums.toolformat.CompletionCustomToolFormatTypeValue;
 import com.anordine.completions.api.webflux.model.tool.format.CompletionCustomToolGrammarFormat;
 import com.anordine.completions.api.webflux.model.tool.format.CompletionCustomToolTextFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
