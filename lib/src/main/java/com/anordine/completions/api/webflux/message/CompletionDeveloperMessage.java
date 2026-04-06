@@ -5,6 +5,10 @@ import com.anordine.completions.api.webflux.message.abs.CompletionMessage;
 
 public class CompletionDeveloperMessage extends CompletionMessage {
 
+    public CompletionDeveloperMessage(String content) {
+        super(content, CompletionRole.DEVELOPER);
+    }
+
     public CompletionDeveloperMessage(String content, String name) {
         super(content, CompletionRole.DEVELOPER, name);
     }

@@ -49,6 +49,10 @@ public abstract class CompletionMessage {
     protected final CompletionRole role;
     protected String name;
 
+    protected CompletionMessage(String content, CompletionRole role) {
+        this(content, role, null);
+    }
+
     protected CompletionMessage(String content, CompletionRole role, String name) {
         this.content = content;
         this.role = role;
