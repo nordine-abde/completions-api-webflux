@@ -24,6 +24,7 @@ public class CompletionAssistantMessage extends CompletionMessage {
     private String refusal;
     @JsonProperty("tool_calls")
     private List<CompletionToolCall> toolCalls;
+    private CompletionAudio audio;
 
     public String getRefusal() {
         return refusal;
@@ -41,6 +42,14 @@ public class CompletionAssistantMessage extends CompletionMessage {
     @JsonProperty("tool_calls")
     public void setToolCalls(List<CompletionToolCall> toolCalls) {
         this.toolCalls = toolCalls;
+    }
+
+    public CompletionAudio getAudio() {
+        return audio;
+    }
+
+    public void setAudio(CompletionAudio audio) {
+        this.audio = audio;
     }
 
 

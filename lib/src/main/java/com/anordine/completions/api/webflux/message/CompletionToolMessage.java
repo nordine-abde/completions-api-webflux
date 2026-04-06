@@ -16,4 +16,14 @@ public class CompletionToolMessage extends CompletionMessage {
     public CompletionToolMessage() {
         super(CompletionRole.TOOL);
     }
+
+    private String toolCallId;
+
+    public String getToolCallId() {
+        return toolCallId;
+    }
+
+    public void setToolCallId(String toolCallId) {
+        this.toolCallId = toolCallId;
+    }
 }
