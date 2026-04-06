@@ -28,8 +28,9 @@ public class CompletionsRequest {
     private String safetyIdentifier;
     private Boolean store;
     private Double temperature;
+    private String toolChoice;
     private List<CompletionTool> tools;
-    private Integer topLogProbs;
+    private Integer topLogprobs;
     private Double topP;
     private CompletionVerbosity verbosity;
 
@@ -49,12 +50,12 @@ public class CompletionsRequest {
         this.topP = topP;
     }
 
-    public Integer getTopLogProbs() {
-        return topLogProbs;
+    public Integer getTopLogprobs() {
+        return topLogprobs;
     }
 
-    public void setTopLogProbs(Integer topLogProbs) {
-        this.topLogProbs = topLogProbs;
+    public void setTopLogprobs(Integer topLogprobs) {
+        this.topLogprobs = topLogprobs;
     }
 
     public Double getTemperature() {
@@ -63,6 +64,22 @@ public class CompletionsRequest {
 
     public void setTemperature(Double temperature) {
         this.temperature = temperature;
+    }
+
+    public String getToolChoice() {
+        return toolChoice;
+    }
+
+    public void setToolChoice(String toolChoice) {
+        this.toolChoice = toolChoice;
+    }
+
+    public List<CompletionTool> getTools() {
+        return tools;
+    }
+
+    public void setTools(List<CompletionTool> tools) {
+        this.tools = tools;
     }
 
     public Boolean getStore() {
