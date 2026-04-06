@@ -1,5 +1,9 @@
 package com.anordine.completions.api.webflux.tools;
 
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionFunction {
 
     private String arguments;

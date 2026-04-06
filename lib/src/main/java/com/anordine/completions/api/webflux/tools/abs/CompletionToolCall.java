@@ -6,6 +6,8 @@ import com.anordine.completions.api.webflux.tools.CompletionCustomToolCall;
 import com.anordine.completions.api.webflux.tools.CompletionFunctionToolCall;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -23,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 name = CompletionToolTypeValue.CUSTOM
         ),
 })
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public abstract class CompletionToolCall {
 
     protected String id;

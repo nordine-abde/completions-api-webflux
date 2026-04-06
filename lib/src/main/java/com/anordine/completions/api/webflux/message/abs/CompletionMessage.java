@@ -11,6 +11,8 @@ import com.anordine.completions.api.webflux.message.CompletionToolMessage;
 import com.anordine.completions.api.webflux.message.CompletionUserMessage;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -44,6 +46,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 name = CompletionRoleValue.FUNCTION_ROLE
         ),
 })
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public abstract class CompletionMessage {
     protected String content;
     protected final CompletionRole role;

@@ -1,5 +1,9 @@
 package com.anordine.completions.api.webflux.message;
 
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionAudio {
 
     private String id;
