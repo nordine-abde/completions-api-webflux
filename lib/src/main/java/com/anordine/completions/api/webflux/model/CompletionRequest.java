@@ -20,7 +20,7 @@ public class CompletionRequest {
     private List<CompletionModality> modalities;
     private Integer n;
     private Boolean parallelToolCalls;
-    private Double presencePenality;
+    private Double presencePenalty;
     private String promptCacheKey;
     private CompletionReasoningEffort reasoningEffort;
     private CompletionResponseFormat responseFormat;
@@ -112,12 +112,12 @@ public class CompletionRequest {
         this.promptCacheKey = promptCacheKey;
     }
 
-    public Double getPresencePenality() {
-        return presencePenality;
+    public Double getPresencePenalty() {
+        return presencePenalty;
     }
 
-    public void setPresencePenality(Double presencePenality) {
-        this.presencePenality = presencePenality;
+    public void setPresencePenalty(Double presencePenalty) {
+        this.presencePenalty = presencePenalty;
     }
 
     public Boolean getParallelToolCalls() {
