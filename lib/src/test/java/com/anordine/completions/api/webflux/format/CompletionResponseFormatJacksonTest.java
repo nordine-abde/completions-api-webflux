@@ -1,8 +1,8 @@
 package com.anordine.completions.api.webflux.format;
 
 import com.anordine.completions.api.webflux.format.abs.CompletionResponseFormat;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 

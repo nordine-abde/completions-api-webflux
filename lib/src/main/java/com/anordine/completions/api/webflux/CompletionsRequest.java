@@ -5,6 +5,7 @@ import com.anordine.completions.api.webflux.enums.resoning.CompletionReasoningEf
 import com.anordine.completions.api.webflux.enums.verbosity.CompletionVerbosity;
 import com.anordine.completions.api.webflux.format.abs.CompletionResponseFormat;
 import com.anordine.completions.api.webflux.message.abs.CompletionMessage;
+import com.anordine.completions.api.webflux.tool.abs.CompletionTool;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
@@ -27,7 +28,7 @@ public class CompletionsRequest {
     private String safetyIdentifier;
     private Boolean store;
     private Double temperature;
-    private CompletionTool tools;
+    private List<CompletionTool> tools;
     private Integer topLogProbs;
     private Double topP;
     private CompletionVerbosity verbosity;

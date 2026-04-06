@@ -1,0 +1,40 @@
+package com.anordine.completions.api.webflux.tool.abs;
+
+import com.anordine.completions.api.webflux.enums.tool.CompletionToolType;
+import com.anordine.completions.api.webflux.enums.tool.CompletionToolTypeValue;
+import com.anordine.completions.api.webflux.tool.CompletionCustomTool;
+import com.anordine.completions.api.webflux.tool.CompletionFunctionTool;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type",
+        visible = true
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(
+                value = CompletionFunctionTool.class,
+                name = CompletionToolTypeValue.FUNCTION
+        ),
+        @JsonSubTypes.Type(
+                value = CompletionCustomTool.class,
+                name = CompletionToolTypeValue.CUSTOM
+        ),
+})
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public abstract class CompletionTool {
+
+    protected final CompletionToolType type;
+
+    public CompletionToolType getType() {
+        return type;
+    }
+
+    protected CompletionTool(CompletionToolType type) {
+        this.type = type;
+    }
+}
