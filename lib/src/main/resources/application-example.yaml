@@ -1,3 +1,22 @@
+# Copy only the entries you need into your own application.yaml or application.properties.
+# Set `<provider>.autoconfigure` to `true` to create that provider's WebClient bean.
+# Set `<provider>.secret-key` to the API key used as a Bearer token.
+#
+# Built-in bean names:
+# - openAiWebClient
+# - groqWebClient
+# - geminiWebClient
+# - openRouterWebClient
+# - claudeWebClient
+#
+# Custom clients are declared under `custom.<name>`.
+# `<name>` is converted to camelCase for the bean name:
+# - `local-llm` -> `localLlm`
+# - `partner-gateway` -> `partnerGateway`
+# Each custom client needs:
+# - `autoconfigure`: whether the bean should be created
+# - `base-url`: the OpenAI-compatible API base URL
+# - `secret-key`: the Bearer token to send
 anordine:
   completions-api-webflux:
     open-ai:
@@ -16,10 +35,12 @@ anordine:
       autoconfigure: true
       secret-key: CLAUDE_SECRET
     custom:
+      # Creates a bean named `localLlm`
       local-llm:
         autoconfigure: true
         base-url: http://localhost:1234/v1
         secret-key: LOCAL_SECRET
+      # Creates a bean named `partnerGateway`
       partner-gateway:
         autoconfigure: true
         base-url: https://partner.example.com/openai/v1

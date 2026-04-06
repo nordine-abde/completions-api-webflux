@@ -1,20 +1,47 @@
 # completions-api-webflux
 
-Java DTO models for the OpenAI Chat Completions API using Jackson-based JSON mapping.
+Java library for OpenAI Chat Completions DTOs plus Spring WebFlux `WebClient` configuration for compatible providers.
 
-## What This Project Covers
+## Current State
 
-This repository provides DTOs for chat completions request and response payloads, with:
+This repository currently includes:
 
-- enum wire-value mapping using `@JsonValue` and `@JsonCreator`
-- conditional subtype mapping for discriminator-based fields such as `role` and `type`
-- example-based serialization and deserialization tests
+- request and response DTOs for Chat Completions payloads
+- Jackson enum wire-value mapping using `@JsonValue` and `@JsonCreator`
+- discriminator-based subtype mapping for fields such as `role`, `type`, tool choice, and response format
+- tests covering example-based serialization and deserialization
+- Spring `WebClient` configuration for `open-ai`, `groq`, `gemini`, `open-router`, `claude`, and custom compatible endpoints
 
-## Current Version Notes
+## Spring Configuration
 
-Some documented Chat Completions features are not present in this version yet.
+`WebClientConfiguration` provides:
 
-### Not Present In This Version
+- a fallback `WebClient.Builder` bean named `builder` when the application does not already define one
+- opt-in provider clients controlled by `anordine.completions-api-webflux.<provider>.autoconfigure=true`
+- dynamic registration of custom `WebClient` beans from `anordine.completions-api-webflux.custom.<name>`
+
+Custom client property names are converted to camelCase bean names. For example:
+
+- `custom.local-llm` becomes bean `localLlm`
+- `custom.partner-gateway` becomes bean `partnerGateway`
+
+The example properties file is at [lib/src/main/resources/application-example.yaml](lib/src/main/resources/application-example.yaml).
+
+Important: this repository does not currently publish Spring Boot auto-configuration metadata such as `AutoConfiguration.imports`. Consumers must register or import [WebClientConfiguration](lib/src/main/java/com/anordine/completions/api/webflux/configuration/WebClientConfiguration.java) explicitly.
+
+Example:
+```java
+@Configuration
+@Import(WebClientConfiguration.class)
+class MyConfiguration {
+}
+```
+
+## Chat Completions Coverage
+
+Some documented Chat Completions features are still out of scope for the current DTO model set.
+
+### Not Present In The Current DTO Model
 
 - multimodal request content arrays
 - image input content parts
@@ -27,14 +54,14 @@ Some documented Chat Completions features are not present in this version yet.
 - web search request DTOs
 - several optional advanced request fields still planned for a later version
 
-### Streaming Is Not Included In This Version
+### Streaming Is Not Included
 
 Streaming-related request support is not part of the current version, including:
 
 - `stream`
 - `stream_options`
 
-### Deprecated Features Will Not Be Implemented
+### Deprecated Features Are Intentionally Out Of Scope
 
 Deprecated Chat Completions fields are intentionally out of scope for this project version, including:
 
@@ -47,11 +74,12 @@ Deprecated Chat Completions fields are intentionally out of scope for this proje
 
 ## Scope Guidance
 
-If you use this library in the current version, prefer:
+If you use this library in its current state, prefer:
 
 - text-only request messages
 - `tool_calls` instead of deprecated function-calling fields
 - non-streaming chat completions usage
+- providers or gateways that accept OpenAI-compatible bearer-auth chat completions requests
 - currently modeled request and response features only
 
 ## Task Tracking
