@@ -10,8 +10,8 @@ public class CompletionUsage {
     private Integer promptTokens;
     private Integer totalTokens;
 
-    private CompletionTokensDetails completionTokenDetails;
-    private PromptTokenDetails promptTokenDetails;
+    private CompletionTokensDetails completionTokensDetails;
+    private PromptTokenDetails promptTokensDetails;
 
     public CompletionUsage() {
     }
@@ -19,13 +19,13 @@ public class CompletionUsage {
     public CompletionUsage(Integer completionTokens,
                            Integer promptTokens,
                            Integer totalTokens,
-                           CompletionTokensDetails completionTokenDetails,
-                           PromptTokenDetails promptTokenDetails) {
+                           CompletionTokensDetails completionTokensDetails,
+                           PromptTokenDetails promptTokensDetails) {
         this.completionTokens = completionTokens;
         this.promptTokens = promptTokens;
         this.totalTokens = totalTokens;
-        this.completionTokenDetails = completionTokenDetails;
-        this.promptTokenDetails = promptTokenDetails;
+        this.completionTokensDetails = completionTokensDetails;
+        this.promptTokensDetails = promptTokensDetails;
     }
 
     public Integer getCompletionTokens() {
@@ -52,19 +52,19 @@ public class CompletionUsage {
         this.totalTokens = totalTokens;
     }
 
-    public CompletionTokensDetails getCompletionTokenDetails() {
-        return completionTokenDetails;
+    public CompletionTokensDetails getCompletionTokensDetails() {
+        return completionTokensDetails;
     }
 
-    public void setCompletionTokenDetails(CompletionTokensDetails completionTokenDetails) {
-        this.completionTokenDetails = completionTokenDetails;
+    public void setCompletionTokensDetails(CompletionTokensDetails completionTokensDetails) {
+        this.completionTokensDetails = completionTokensDetails;
     }
 
-    public PromptTokenDetails getPromptTokenDetails() {
-        return promptTokenDetails;
+    public PromptTokenDetails getPromptTokensDetails() {
+        return promptTokensDetails;
     }
 
-    public void setPromptTokenDetails(PromptTokenDetails promptTokenDetails) {
-        this.promptTokenDetails = promptTokenDetails;
+    public void setPromptTokensDetails(PromptTokenDetails promptTokensDetails) {
+        this.promptTokensDetails = promptTokensDetails;
     }
 }

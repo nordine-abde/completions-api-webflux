@@ -24,6 +24,7 @@ public class CompletionAssistantMessage extends CompletionMessage {
     }
 
     private String refusal;
+    private List<Object> annotations;
     private List<CompletionToolCall> toolCalls;
     private CompletionAudio audio;
 
@@ -35,8 +36,16 @@ public class CompletionAssistantMessage extends CompletionMessage {
         return toolCalls;
     }
 
+    public List<Object> getAnnotations() {
+        return annotations;
+    }
+
     public void setRefusal(String refusal) {
         this.refusal = refusal;
+    }
+
+    public void setAnnotations(List<Object> annotations) {
+        this.annotations = annotations;
     }
 
     public void setToolCalls(List<CompletionToolCall> toolCalls) {

@@ -14,6 +14,7 @@ public class CompletionResponse {
     private Long created;
     private String model;
     private String object;
+    private String serviceTier;
     private List<CompletionChoices> choices;
     private CompletionUsage usage;
 
@@ -24,12 +25,14 @@ public class CompletionResponse {
                               Long created,
                               String model,
                               String object,
+                              String serviceTier,
                               List<CompletionChoices> choices,
                               CompletionUsage usage) {
         this.id = id;
         this.created = created;
         this.model = model;
         this.object = object;
+        this.serviceTier = serviceTier;
         this.choices = choices;
         this.usage = usage;
     }
@@ -64,6 +67,14 @@ public class CompletionResponse {
 
     public void setObject(String object) {
         this.object = object;
+    }
+
+    public String getServiceTier() {
+        return serviceTier;
+    }
+
+    public void setServiceTier(String serviceTier) {
+        this.serviceTier = serviceTier;
     }
 
     public List<CompletionChoices> getChoices() {

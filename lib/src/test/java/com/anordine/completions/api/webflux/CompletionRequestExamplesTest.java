@@ -19,7 +19,7 @@ class CompletionRequestExamplesTest {
 
     @Test
     void deserializesDefaultExample() throws Exception {
-        CompletionRequest request = readExample("examples/default.json");
+        CompletionRequest request = readExample("examples/request/default.json");
 
         assertEquals("VAR_chat_model_id", request.getModel());
         assertNotNull(request.getMessages());
@@ -30,7 +30,7 @@ class CompletionRequestExamplesTest {
 
     @Test
     void deserializesFunctionsExample() throws Exception {
-        CompletionRequest request = readExample("examples/functions.json");
+        CompletionRequest request = readExample("examples/request/functions.json");
 
         assertEquals("gpt-5.4", request.getModel());
         assertEquals("auto", request.getToolChoice());

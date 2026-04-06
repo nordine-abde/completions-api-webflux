@@ -10,14 +10,19 @@ public class CompletionChoices {
     private CompletionFinishReason finishReason;
     private Integer index;
     private CompletionAssistantMessage message;
+    private Object logprobs;
 
     public CompletionChoices() {
     }
 
-    public CompletionChoices(CompletionFinishReason finishReason, Integer index, CompletionAssistantMessage message) {
+    public CompletionChoices(CompletionFinishReason finishReason,
+                             Integer index,
+                             CompletionAssistantMessage message,
+                             Object logprobs) {
         this.finishReason = finishReason;
         this.index = index;
         this.message = message;
+        this.logprobs = logprobs;
     }
 
     public CompletionFinishReason getFinishReason() {
@@ -42,5 +47,13 @@ public class CompletionChoices {
 
     public void setMessage(CompletionAssistantMessage message) {
         this.message = message;
+    }
+
+    public Object getLogprobs() {
+        return logprobs;
+    }
+
+    public void setLogprobs(Object logprobs) {
+        this.logprobs = logprobs;
     }
 }
