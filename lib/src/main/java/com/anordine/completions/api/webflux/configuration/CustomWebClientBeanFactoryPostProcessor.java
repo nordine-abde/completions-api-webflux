@@ -1,6 +1,7 @@
 package com.anordine.completions.api.webflux.configuration;
 
 import com.anordine.completions.api.webflux.client.ClientProvider;
+import com.anordine.completions.api.webflux.properties.WebClientProperties;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;

@@ -1,4 +1,4 @@
-package com.anordine.completions.api.webflux.configuration;
+package com.anordine.completions.api.webflux.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
