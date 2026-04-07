@@ -44,9 +44,9 @@ For straightforward text chat calls you can build requests fluently and wrap any
 ```java
 WebClient openAiWebClient = applicationContext.getBean("openAiWebClient", WebClient.class);
 
-CompletionService completionService = new CompletionService(openAiWebClient);
+CompletionService completionHelper = new CompletionService(openAiWebClient);
 
-CompletionResponse response = completionService.callCompletionsApi(
+CompletionResponse response = completionHelper.callCompletionsApi(
         new CompletionRequest()
                 .withModel("gpt-5.4")
                 .addDeveloperMessage("Be concise")

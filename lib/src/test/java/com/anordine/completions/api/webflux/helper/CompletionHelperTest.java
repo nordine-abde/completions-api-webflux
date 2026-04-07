@@ -1,4 +1,4 @@
-package com.anordine.completions.api.webflux.service;
+package com.anordine.completions.api.webflux.helper;
 
 import com.anordine.completions.api.webflux.model.CompletionResponse;
 import com.anordine.completions.api.webflux.model.message.CompletionDeveloperMessage;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class CompletionServiceTest {
+class CompletionHelperTest {
 
     @Test
     void postsRequestToChatCompletionsEndpointAndMapsResponse() throws IOException {
@@ -29,11 +29,11 @@ class CompletionServiceTest {
         server.start();
 
         try {
-            CompletionService completionService = new CompletionService(WebClient.builder()
+            CompletionHelper completionHelper = new CompletionHelper(WebClient.builder()
                     .baseUrl("http://127.0.0.1:" + server.getAddress().getPort())
                     .build());
 
-            CompletionResponse response = completionService.callCompletionsApi(
+            CompletionResponse response = completionHelper.callCompletionsApi(
                     "gpt-5.4",
                     new CompletionDeveloperMessage("You are terse"),
                     new CompletionUserMessage("Hello from test")

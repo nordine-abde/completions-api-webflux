@@ -1,4 +1,4 @@
-package com.anordine.completions.api.webflux.service;
+package com.anordine.completions.api.webflux.helper;
 
 import com.anordine.completions.api.webflux.model.CompletionRequest;
 import com.anordine.completions.api.webflux.model.CompletionResponse;
@@ -10,13 +10,13 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
-public class CompletionService {
+public class CompletionHelper {
 
     private static final String COMPLETION_PATH = "/chat/completions";
 
     private final WebClient webClient;
 
-    public CompletionService(WebClient webClient) {
+    public CompletionHelper(WebClient webClient) {
         this.webClient = Objects.requireNonNull(webClient, "webClient must not be null");
     }
 
