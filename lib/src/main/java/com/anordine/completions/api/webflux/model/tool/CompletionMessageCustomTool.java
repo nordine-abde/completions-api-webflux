@@ -1,12 +1,13 @@
 package com.anordine.completions.api.webflux.model.tool;
 
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionMessageCustomTool {
+public class CompletionMessageCustomTool implements DeepClonable<CompletionMessageCustomTool> {
 
     private String input;
     private String name;
@@ -33,5 +34,10 @@ public class CompletionMessageCustomTool {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public CompletionMessageCustomTool deepClone() {
+        return new CompletionMessageCustomTool(this.input, this.name);
     }
 }

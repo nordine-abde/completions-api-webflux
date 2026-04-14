@@ -25,4 +25,11 @@ public class CompletionResponseFormatJsonSchema extends CompletionResponseFormat
     public void setJsonSchema(CompletionResponseFormatJsonSchemaDefinition jsonSchema) {
         this.jsonSchema = jsonSchema;
     }
+
+    @Override
+    public CompletionResponseFormatJsonSchema deepClone() {
+        return new CompletionResponseFormatJsonSchema(
+                this.jsonSchema == null ? null : this.jsonSchema.deepClone()
+        );
+    }
 }

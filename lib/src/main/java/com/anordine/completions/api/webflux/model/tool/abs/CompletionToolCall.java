@@ -4,6 +4,7 @@ import com.anordine.completions.api.webflux.model.enums.tool.CompletionToolType;
 import com.anordine.completions.api.webflux.model.enums.tool.CompletionToolTypeValue;
 import com.anordine.completions.api.webflux.model.tool.CompletionMessageCustomToolCall;
 import com.anordine.completions.api.webflux.model.tool.CompletionMessageFunctionToolCall;
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -28,7 +29,7 @@ import tools.jackson.databind.annotation.JsonNaming;
         ),
 })
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public abstract class CompletionToolCall {
+public abstract class CompletionToolCall implements DeepClonable<CompletionToolCall> {
 
     protected String id;
     protected final CompletionToolType type;
@@ -53,4 +54,7 @@ public abstract class CompletionToolCall {
     public void setId(String id) {
         this.id = id;
     }
+
+    @Override
+    public abstract CompletionToolCall deepClone();
 }

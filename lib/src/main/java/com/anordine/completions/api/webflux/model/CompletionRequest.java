@@ -13,6 +13,8 @@ import com.anordine.completions.api.webflux.model.message.abs.CompletionMessage;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionTool;
 import com.anordine.completions.api.webflux.model.toolchoice.abs.ToolChoiceOptionInterface;
 import com.anordine.completions.api.webflux.model.toolchoice.jackson.ToolChoiceOptionInterfaceDeserializer;
+import com.anordine.completions.api.webflux.util.DeepClonable;
+import com.anordine.completions.api.webflux.util.DeepCloneUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonDeserialize;
@@ -24,7 +26,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionRequest {
+public class CompletionRequest implements DeepClonable<CompletionRequest> {
 
     private List<CompletionMessage> messages;
     private String model;
@@ -398,5 +400,54 @@ public class CompletionRequest {
 
     public CompletionRequest addMessage(String message) {
         return this.addUserMessage(message);
+    }
+
+    @Override
+    public CompletionRequest deepClone() {
+        CompletionRequest clone = new CompletionRequest();
+        clone.setMessages(cloneMessages());
+        clone.setModel(this.model);
+        clone.setFrequencyPenalty(this.frequencyPenalty);
+        clone.setMaxCompletionTokens(this.maxCompletionTokens);
+        clone.setModalities(DeepCloneUtil.deepCloneList(this.modalities));
+        clone.setN(this.n);
+        clone.setParallelToolCalls(this.parallelToolCalls);
+        clone.setPresencePenalty(this.presencePenalty);
+        clone.setPromptCacheKey(this.promptCacheKey);
+        clone.setPromptCacheRetention(this.promptCacheRetention);
+        clone.setReasoningEffort(this.reasoningEffort);
+        clone.setResponseFormat(this.responseFormat == null ? null : this.responseFormat.deepClone());
+        clone.setSafetyIdentifier(this.safetyIdentifier);
+        clone.setStore(this.store);
+        clone.setTemperature(this.temperature);
+        clone.setToolChoice(this.toolChoice == null ? null : this.toolChoice.deepClone());
+        clone.setTools(cloneTools());
+        clone.setLogprobs(this.logprobs);
+        clone.setTopLogprobs(this.topLogprobs);
+        clone.setTopP(this.topP);
+        clone.setVerbosity(this.verbosity);
+        return clone;
+    }
+
+    private List<CompletionMessage> cloneMessages() {
+        if (this.messages == null) {
+            return null;
+        }
+        List<CompletionMessage> clonedMessages = new ArrayList<>(this.messages.size());
+        for (CompletionMessage message : this.messages) {
+            clonedMessages.add(message == null ? null : message.deepClone());
+        }
+        return clonedMessages;
+    }
+
+    private List<CompletionTool> cloneTools() {
+        if (this.tools == null) {
+            return null;
+        }
+        List<CompletionTool> clonedTools = new ArrayList<>(this.tools.size());
+        for (CompletionTool tool : this.tools) {
+            clonedTools.add(tool == null ? null : tool.deepClone());
+        }
+        return clonedTools;
     }
 }

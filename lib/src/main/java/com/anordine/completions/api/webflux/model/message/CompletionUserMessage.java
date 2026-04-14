@@ -21,4 +21,9 @@ public class CompletionUserMessage extends CompletionMessage {
     public CompletionUserMessage() {
         super(CompletionRole.USER);
     }
+
+    @Override
+    public CompletionUserMessage deepClone() {
+        return new CompletionUserMessage(this.content, this.name);
+    }
 }

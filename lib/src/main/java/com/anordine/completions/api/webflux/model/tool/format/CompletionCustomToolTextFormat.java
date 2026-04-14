@@ -10,4 +10,9 @@ public class CompletionCustomToolTextFormat extends CompletionCustomToolFormat {
     public CompletionCustomToolTextFormat() {
         super(CompletionCustomToolFormatType.TEXT);
     }
+
+    @Override
+    public CompletionCustomToolTextFormat deepClone() {
+        return new CompletionCustomToolTextFormat();
+    }
 }

@@ -20,4 +20,9 @@ public class CompletionSystemMessage extends CompletionMessage {
     public CompletionSystemMessage() {
         super(CompletionRole.SYSTEM);
     }
+
+    @Override
+    public CompletionSystemMessage deepClone() {
+        return new CompletionSystemMessage(this.content, this.name);
+    }
 }

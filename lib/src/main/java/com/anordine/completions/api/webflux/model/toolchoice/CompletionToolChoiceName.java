@@ -1,9 +1,10 @@
 package com.anordine.completions.api.webflux.model.toolchoice;
 
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CompletionToolChoiceName {
+public class CompletionToolChoiceName implements DeepClonable<CompletionToolChoiceName> {
 
     private String name;
 
@@ -20,5 +21,10 @@ public class CompletionToolChoiceName {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public CompletionToolChoiceName deepClone() {
+        return new CompletionToolChoiceName(this.name);
     }
 }

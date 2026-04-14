@@ -28,4 +28,9 @@ public class CompletionFunctionTool extends CompletionTool {
     public void setFunction(CompletionFunctionDefinition function) {
         this.function = function;
     }
+
+    @Override
+    public CompletionFunctionTool deepClone() {
+        return new CompletionFunctionTool(this.function == null ? null : this.function.deepClone());
+    }
 }

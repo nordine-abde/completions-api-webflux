@@ -38,4 +38,9 @@ public enum CompletionToolChoiceMode implements ToolChoiceOptionInterface {
         }
         return mode;
     }
+
+    @Override
+    public CompletionToolChoiceMode deepClone() {
+        return this;
+    }
 }

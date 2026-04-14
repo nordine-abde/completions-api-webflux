@@ -1,12 +1,13 @@
 package com.anordine.completions.api.webflux.model.usage;
 
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionTokensDetails {
+public class CompletionTokensDetails implements DeepClonable<CompletionTokensDetails> {
 
     private Integer acceptedPredictionTokens;
     private Integer audioTokens;
@@ -56,5 +57,15 @@ public class CompletionTokensDetails {
 
     public void setRejectedPredictionTokens(Integer rejectedPredictionTokens) {
         this.rejectedPredictionTokens = rejectedPredictionTokens;
+    }
+
+    @Override
+    public CompletionTokensDetails deepClone() {
+        return new CompletionTokensDetails(
+                this.acceptedPredictionTokens,
+                this.audioTokens,
+                this.reasoningTokens,
+                this.rejectedPredictionTokens
+        );
     }
 }

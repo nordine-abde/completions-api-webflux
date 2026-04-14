@@ -28,4 +28,11 @@ public class CompletionNamedFunctionToolChoice extends CompletionToolChoiceOptio
     public void setFunction(CompletionToolChoiceName function) {
         this.function = function;
     }
+
+    @Override
+    public CompletionNamedFunctionToolChoice deepClone() {
+        return new CompletionNamedFunctionToolChoice(
+                this.function == null ? null : this.function.deepClone()
+        );
+    }
 }

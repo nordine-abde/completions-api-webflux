@@ -1,13 +1,14 @@
 package com.anordine.completions.api.webflux.model.tool;
 
 import com.anordine.completions.api.webflux.model.tool.format.abs.CompletionCustomToolFormat;
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionCustomDefinition {
+public class CompletionCustomDefinition implements DeepClonable<CompletionCustomDefinition> {
 
     private String name;
     private String description;
@@ -35,5 +36,14 @@ public class CompletionCustomDefinition {
 
     public void setFormat(CompletionCustomToolFormat format) {
         this.format = format;
+    }
+
+    @Override
+    public CompletionCustomDefinition deepClone() {
+        CompletionCustomDefinition clone = new CompletionCustomDefinition();
+        clone.setName(this.name);
+        clone.setDescription(this.description);
+        clone.setFormat(this.format == null ? null : this.format.deepClone());
+        return clone;
     }
 }

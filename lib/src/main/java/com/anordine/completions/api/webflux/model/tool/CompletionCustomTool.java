@@ -28,4 +28,9 @@ public class CompletionCustomTool extends CompletionTool {
     public void setCustom(CompletionCustomDefinition custom) {
         this.custom = custom;
     }
+
+    @Override
+    public CompletionCustomTool deepClone() {
+        return new CompletionCustomTool(this.custom == null ? null : this.custom.deepClone());
+    }
 }

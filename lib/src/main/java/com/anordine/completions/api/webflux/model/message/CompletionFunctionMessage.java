@@ -21,4 +21,9 @@ public class CompletionFunctionMessage extends CompletionMessage {
     public CompletionFunctionMessage() {
         super(CompletionRole.FUNCTION);
     }
+
+    @Override
+    public CompletionFunctionMessage deepClone() {
+        return new CompletionFunctionMessage(this.content, this.name);
+    }
 }

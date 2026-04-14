@@ -11,4 +11,8 @@ public class CompletionResponseFormatText extends CompletionResponseFormat {
         super(CompletionResponseFormatType.TEXT);
     }
 
+    @Override
+    public CompletionResponseFormatText deepClone() {
+        return new CompletionResponseFormatText();
+    }
 }

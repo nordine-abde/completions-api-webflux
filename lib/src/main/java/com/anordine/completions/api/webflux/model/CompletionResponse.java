@@ -2,15 +2,17 @@ package com.anordine.completions.api.webflux.model;
 
 import com.anordine.completions.api.webflux.model.message.CompletionChoices;
 import com.anordine.completions.api.webflux.model.usage.CompletionUsage;
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionResponse {
+public class CompletionResponse implements DeepClonable<CompletionResponse> {
 
     private String id;
     private Long created;
@@ -93,5 +95,25 @@ public class CompletionResponse {
 
     public void setUsage(CompletionUsage usage) {
         this.usage = usage;
+    }
+
+    @Override
+    public CompletionResponse deepClone() {
+        List<CompletionChoices> clonedChoices = null;
+        if (this.choices != null) {
+            clonedChoices = new ArrayList<>(this.choices.size());
+            for (CompletionChoices choice : this.choices) {
+                clonedChoices.add(choice == null ? null : choice.deepClone());
+            }
+        }
+        return new CompletionResponse(
+                this.id,
+                this.created,
+                this.model,
+                this.object,
+                this.serviceTier,
+                clonedChoices,
+                this.usage == null ? null : this.usage.deepClone()
+        );
     }
 }

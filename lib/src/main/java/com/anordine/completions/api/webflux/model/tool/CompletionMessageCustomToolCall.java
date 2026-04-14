@@ -28,4 +28,12 @@ public class CompletionMessageCustomToolCall extends CompletionToolCall {
     public void setCustom(CompletionMessageCustomTool custom) {
         this.custom = custom;
     }
+
+    @Override
+    public CompletionMessageCustomToolCall deepClone() {
+        return new CompletionMessageCustomToolCall(
+                this.id,
+                this.custom == null ? null : this.custom.deepClone()
+        );
+    }
 }

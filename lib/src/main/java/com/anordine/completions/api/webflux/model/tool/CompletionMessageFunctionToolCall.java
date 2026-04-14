@@ -28,4 +28,12 @@ public class CompletionMessageFunctionToolCall extends CompletionToolCall {
     public void setFunction(CompletionMessageFunctionTool function) {
         this.function = function;
     }
+
+    @Override
+    public CompletionMessageFunctionToolCall deepClone() {
+        return new CompletionMessageFunctionToolCall(
+                this.id,
+                this.function == null ? null : this.function.deepClone()
+        );
+    }
 }

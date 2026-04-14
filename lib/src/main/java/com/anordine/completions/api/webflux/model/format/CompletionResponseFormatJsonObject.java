@@ -10,4 +10,9 @@ public class CompletionResponseFormatJsonObject extends CompletionResponseFormat
     protected CompletionResponseFormatJsonObject() {
         super(CompletionResponseFormatType.JSON_OBJECT);
     }
+
+    @Override
+    public CompletionResponseFormatJsonObject deepClone() {
+        return new CompletionResponseFormatJsonObject();
+    }
 }

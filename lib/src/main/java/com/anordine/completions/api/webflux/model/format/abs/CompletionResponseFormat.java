@@ -5,6 +5,7 @@ import com.anordine.completions.api.webflux.model.enums.format.CompletionRespons
 import com.anordine.completions.api.webflux.model.format.CompletionResponseFormatJsonObject;
 import com.anordine.completions.api.webflux.model.format.CompletionResponseFormatJsonSchema;
 import com.anordine.completions.api.webflux.model.format.CompletionResponseFormatText;
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -33,7 +34,7 @@ import tools.jackson.databind.annotation.JsonNaming;
         ),
 })
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public abstract class CompletionResponseFormat {
+public abstract class CompletionResponseFormat implements DeepClonable<CompletionResponseFormat> {
 
     protected final CompletionResponseFormatType type;
 
@@ -44,4 +45,7 @@ public abstract class CompletionResponseFormat {
     public CompletionResponseFormatType getType() {
         return type;
     }
+
+    @Override
+    public abstract CompletionResponseFormat deepClone();
 }

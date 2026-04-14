@@ -28,4 +28,9 @@ public class CompletionCustomToolGrammarFormat extends CompletionCustomToolForma
     public void setGrammar(CompletionGrammarDefinition grammar) {
         this.grammar = grammar;
     }
+
+    @Override
+    public CompletionCustomToolGrammarFormat deepClone() {
+        return new CompletionCustomToolGrammarFormat(this.grammar == null ? null : this.grammar.deepClone());
+    }
 }

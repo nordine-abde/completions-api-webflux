@@ -44,4 +44,7 @@ public abstract class CompletionToolChoiceOption implements ToolChoiceOptionInte
     public CompletionToolChoiceType getType() {
         return type;
     }
+
+    @Override
+    public abstract CompletionToolChoiceOption deepClone();
 }

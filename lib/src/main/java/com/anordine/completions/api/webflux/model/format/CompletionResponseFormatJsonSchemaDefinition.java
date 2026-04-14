@@ -1,5 +1,7 @@
 package com.anordine.completions.api.webflux.model.format;
 
+import com.anordine.completions.api.webflux.util.DeepClonable;
+import com.anordine.completions.api.webflux.util.DeepCloneUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
@@ -8,7 +10,8 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionResponseFormatJsonSchemaDefinition {
+public class CompletionResponseFormatJsonSchemaDefinition
+        implements DeepClonable<CompletionResponseFormatJsonSchemaDefinition> {
 
     private String name;
     private String description;
@@ -58,5 +61,15 @@ public class CompletionResponseFormatJsonSchemaDefinition {
 
     public void setStrict(Boolean strict) {
         this.strict = strict;
+    }
+
+    @Override
+    public CompletionResponseFormatJsonSchemaDefinition deepClone() {
+        return new CompletionResponseFormatJsonSchemaDefinition(
+                this.name,
+                this.description,
+                DeepCloneUtil.deepCloneStringObjectMap(this.schema),
+                this.strict
+        );
     }
 }

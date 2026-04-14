@@ -2,15 +2,17 @@ package com.anordine.completions.api.webflux.model.toolchoice;
 
 import com.anordine.completions.api.webflux.model.enums.toolchoice.CompletionAllowedToolsMode;
 import com.anordine.completions.api.webflux.model.tool.abs.CompletionTool;
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionAllowedTools {
+public class CompletionAllowedTools implements DeepClonable<CompletionAllowedTools> {
 
     private CompletionAllowedToolsMode mode;
     private List<CompletionTool> tools;
@@ -29,5 +31,19 @@ public class CompletionAllowedTools {
 
     public void setTools(List<CompletionTool> tools) {
         this.tools = tools;
+    }
+
+    @Override
+    public CompletionAllowedTools deepClone() {
+        CompletionAllowedTools clone = new CompletionAllowedTools();
+        clone.setMode(this.mode);
+        if (this.tools != null) {
+            List<CompletionTool> clonedTools = new ArrayList<>(this.tools.size());
+            for (CompletionTool tool : this.tools) {
+                clonedTools.add(tool == null ? null : tool.deepClone());
+            }
+            clone.setTools(clonedTools);
+        }
+        return clone;
     }
 }

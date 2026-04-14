@@ -31,4 +31,11 @@ public class CompletionToolMessage extends CompletionMessage {
     public void setToolCallId(String toolCallId) {
         this.toolCallId = toolCallId;
     }
+
+    @Override
+    public CompletionToolMessage deepClone() {
+        CompletionToolMessage clone = new CompletionToolMessage(this.content, this.name);
+        clone.setToolCallId(this.toolCallId);
+        return clone;
+    }
 }

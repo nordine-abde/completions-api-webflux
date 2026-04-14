@@ -28,4 +28,11 @@ public class CompletionNamedCustomToolChoice extends CompletionToolChoiceOption 
     public void setCustom(CompletionToolChoiceName custom) {
         this.custom = custom;
     }
+
+    @Override
+    public CompletionNamedCustomToolChoice deepClone() {
+        return new CompletionNamedCustomToolChoice(
+                this.custom == null ? null : this.custom.deepClone()
+        );
+    }
 }

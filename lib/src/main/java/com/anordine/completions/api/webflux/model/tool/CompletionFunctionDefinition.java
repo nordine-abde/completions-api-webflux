@@ -1,5 +1,7 @@
 package com.anordine.completions.api.webflux.model.tool;
 
+import com.anordine.completions.api.webflux.util.DeepClonable;
+import com.anordine.completions.api.webflux.util.DeepCloneUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
@@ -8,7 +10,7 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionFunctionDefinition {
+public class CompletionFunctionDefinition implements DeepClonable<CompletionFunctionDefinition> {
 
     private Map<String, Object> parameters;
     private Boolean strict;
@@ -45,5 +47,15 @@ public class CompletionFunctionDefinition {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public CompletionFunctionDefinition deepClone() {
+        CompletionFunctionDefinition clone = new CompletionFunctionDefinition();
+        clone.setParameters(DeepCloneUtil.deepCloneStringObjectMap(this.parameters));
+        clone.setStrict(this.strict);
+        clone.setDescription(this.description);
+        clone.setName(this.name);
+        return clone;
     }
 }

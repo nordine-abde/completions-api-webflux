@@ -9,6 +9,7 @@ import com.anordine.completions.api.webflux.model.message.CompletionFunctionMess
 import com.anordine.completions.api.webflux.model.message.CompletionSystemMessage;
 import com.anordine.completions.api.webflux.model.message.CompletionToolMessage;
 import com.anordine.completions.api.webflux.model.message.CompletionUserMessage;
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -49,7 +50,7 @@ import tools.jackson.databind.annotation.JsonNaming;
         ),
 })
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public abstract class CompletionMessage {
+public abstract class CompletionMessage implements DeepClonable<CompletionMessage> {
     protected String content;
     protected final CompletionRole role;
     protected String name;
@@ -87,4 +88,7 @@ public abstract class CompletionMessage {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public abstract CompletionMessage deepClone();
 }

@@ -21,4 +21,9 @@ public class CompletionDeveloperMessage extends CompletionMessage {
     public CompletionDeveloperMessage() {
         super(CompletionRole.DEVELOPER);
     }
+
+    @Override
+    public CompletionDeveloperMessage deepClone() {
+        return new CompletionDeveloperMessage(this.content, this.name);
+    }
 }

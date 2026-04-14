@@ -28,4 +28,11 @@ public class CompletionToolChoiceAllowedTools extends CompletionToolChoiceOption
     public void setAllowedTools(CompletionAllowedTools allowedTools) {
         this.allowedTools = allowedTools;
     }
+
+    @Override
+    public CompletionToolChoiceAllowedTools deepClone() {
+        return new CompletionToolChoiceAllowedTools(
+                this.allowedTools == null ? null : this.allowedTools.deepClone()
+        );
+    }
 }

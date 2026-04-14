@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -53,5 +54,19 @@ public class CompletionAssistantMessage extends CompletionMessage {
         this.audio = audio;
     }
 
+    @Override
+    public CompletionAssistantMessage deepClone() {
+        CompletionAssistantMessage clone = new CompletionAssistantMessage(this.content, this.name);
+        clone.setRefusal(this.refusal);
+        if (this.toolCalls != null) {
+            List<CompletionToolCall> clonedToolCalls = new ArrayList<>(this.toolCalls.size());
+            for (CompletionToolCall toolCall : this.toolCalls) {
+                clonedToolCalls.add(toolCall == null ? null : toolCall.deepClone());
+            }
+            clone.setToolCalls(clonedToolCalls);
+        }
+        clone.setAudio(this.audio == null ? null : this.audio.deepClone());
+        return clone;
+    }
 
 }

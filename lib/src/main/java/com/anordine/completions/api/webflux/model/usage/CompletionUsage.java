@@ -1,12 +1,13 @@
 package com.anordine.completions.api.webflux.model.usage;
 
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionUsage {
+public class CompletionUsage implements DeepClonable<CompletionUsage> {
 
     private Integer completionTokens;
     private Integer promptTokens;
@@ -68,5 +69,16 @@ public class CompletionUsage {
 
     public void setPromptTokensDetails(PromptTokenDetails promptTokensDetails) {
         this.promptTokensDetails = promptTokensDetails;
+    }
+
+    @Override
+    public CompletionUsage deepClone() {
+        return new CompletionUsage(
+                this.completionTokens,
+                this.promptTokens,
+                this.totalTokens,
+                this.completionTokensDetails == null ? null : this.completionTokensDetails.deepClone(),
+                this.promptTokensDetails == null ? null : this.promptTokensDetails.deepClone()
+        );
     }
 }

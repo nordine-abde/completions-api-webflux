@@ -4,6 +4,7 @@ import com.anordine.completions.api.webflux.model.enums.toolformat.CompletionCus
 import com.anordine.completions.api.webflux.model.enums.toolformat.CompletionCustomToolFormatTypeValue;
 import com.anordine.completions.api.webflux.model.tool.format.CompletionCustomToolGrammarFormat;
 import com.anordine.completions.api.webflux.model.tool.format.CompletionCustomToolTextFormat;
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -28,7 +29,7 @@ import tools.jackson.databind.annotation.JsonNaming;
         ),
 })
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public abstract class CompletionCustomToolFormat {
+public abstract class CompletionCustomToolFormat implements DeepClonable<CompletionCustomToolFormat> {
 
     protected final CompletionCustomToolFormatType type;
 
@@ -39,4 +40,7 @@ public abstract class CompletionCustomToolFormat {
     public CompletionCustomToolFormatType getType() {
         return type;
     }
+
+    @Override
+    public abstract CompletionCustomToolFormat deepClone();
 }

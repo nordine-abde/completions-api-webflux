@@ -1,12 +1,13 @@
 package com.anordine.completions.api.webflux.model.usage;
 
+import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class PromptTokenDetails {
+public class PromptTokenDetails implements DeepClonable<PromptTokenDetails> {
 
     private Integer audioTokens;
     private Integer cachedTokens;
@@ -33,5 +34,10 @@ public class PromptTokenDetails {
 
     public void setCachedTokens(Integer cachedTokens) {
         this.cachedTokens = cachedTokens;
+    }
+
+    @Override
+    public PromptTokenDetails deepClone() {
+        return new PromptTokenDetails(this.audioTokens, this.cachedTokens);
     }
 }
