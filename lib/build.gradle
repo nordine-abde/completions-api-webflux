@@ -22,6 +22,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     api libs.spring.webflux
+    api libs.spring.redis
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -34,4 +35,16 @@ java {
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+tasks.register('redisIntegrationTest', Test) {
+    description = 'Runs Redis-backed integration tests. Start compose.redis-test.yml first.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+
+    include '**/InRedisHistoryManagerTest.class'
+    environment 'REDIS_INTEGRATION_TESTS', 'true'
 }

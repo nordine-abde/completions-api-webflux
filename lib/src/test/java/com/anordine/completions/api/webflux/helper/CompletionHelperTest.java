@@ -54,6 +54,36 @@ class CompletionHelperTest {
         }
     }
 
+    @Test
+    void singleCompletionMessageUsesModelBasedVarargsOverload() throws IOException {
+        AtomicReference<String> method = new AtomicReference<>();
+        AtomicReference<String> path = new AtomicReference<>();
+        AtomicReference<String> requestBody = new AtomicReference<>();
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/chat/completions", exchange -> handleCompletionRequest(exchange, method, path, requestBody));
+        server.start();
+
+        try {
+            CompletionHelper completionHelper = new CompletionHelper(WebClient.builder()
+                    .baseUrl("http://127.0.0.1:" + server.getAddress().getPort())
+                    .build());
+
+            CompletionResponse response = completionHelper.callCompletionsApi(
+                    "gpt-5.4",
+                    new CompletionUserMessage("Hello from single message test")
+            ).block();
+
+            assertNotNull(response);
+            assertEquals("POST", method.get());
+            assertEquals("/chat/completions", path.get());
+            assertTrue(requestBody.get().contains("\"model\":\"gpt-5.4\""));
+            assertTrue(requestBody.get().contains("\"role\":\"user\""));
+            assertTrue(requestBody.get().contains("\"content\":\"Hello from single message test\""));
+        } finally {
+            server.stop(0);
+        }
+    }
+
     private void handleCompletionRequest(HttpExchange exchange,
                                          AtomicReference<String> method,
                                          AtomicReference<String> path,

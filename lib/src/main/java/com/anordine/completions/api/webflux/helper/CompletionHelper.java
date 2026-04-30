@@ -1,5 +1,6 @@
 package com.anordine.completions.api.webflux.helper;
 
+import com.anordine.completions.api.webflux.helper.history.IHistoryManager;
 import com.anordine.completions.api.webflux.model.CompletionRequest;
 import com.anordine.completions.api.webflux.model.CompletionResponse;
 import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
@@ -15,9 +16,15 @@ public class CompletionHelper {
     private static final String COMPLETION_PATH = "/chat/completions";
 
     private final WebClient webClient;
+    private final IHistoryManager historyManager;
 
     public CompletionHelper(WebClient webClient) {
+        this(webClient, null);
+    }
+
+    public CompletionHelper(WebClient webClient, IHistoryManager historyManager) {
         this.webClient = Objects.requireNonNull(webClient, "webClient must not be null");
+        this.historyManager = historyManager;
     }
 
     public Mono<@NonNull CompletionResponse> callCompletionsApi(CompletionRequest request) {
@@ -49,5 +56,12 @@ public class CompletionHelper {
         return this.callCompletionsApi(new CompletionRequest()
                 .withModel(model)
                 .addMessages(messages));
+    }
+
+    public Mono<@NonNull CompletionResponse> callCompletionsApiWithHistory(String chatId, CompletionMessage message) {
+        return this.historyManager.addMessage(chatId, message)
+                .flatMap(this::callCompletionsApi)
+                .flatMap(completionResponse -> this.historyManager.addMessage(chatId, completionResponse.getChoices().getFirst().getMessage())
+                        .thenReturn(completionResponse));
     }
 }

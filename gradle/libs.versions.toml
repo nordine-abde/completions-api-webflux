@@ -8,3 +8,4 @@ webflux-version = "4.0.5"
 [libraries]
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
 spring-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "webflux-version"}
+spring-redis = {module = "org.springframework.boot:spring-boot-starter-data-redis-reactive", version.ref="webflux-version"}
