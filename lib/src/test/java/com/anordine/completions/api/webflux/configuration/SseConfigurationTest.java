@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SseConfigurationTest {
 
@@ -30,6 +31,7 @@ class SseConfigurationTest {
             assertEquals(Duration.ofSeconds(30), manager.getHeartbeatEvery());
             assertEquals(Duration.ofSeconds(3), manager.getTypingEvery());
             assertEquals(256, manager.getMaxBackPressure());
+            assertTrue(manager.isEmitUsageEvents());
         }
     }
 
@@ -39,13 +41,15 @@ class SseConfigurationTest {
                 "anordine.completions-api-webflux.sse.autoconfigure", "true",
                 "anordine.completions-api-webflux.sse.heartbeat-every", "5s",
                 "anordine.completions-api-webflux.sse.typing-every", "1s",
-                "anordine.completions-api-webflux.sse.max-back-pressure", "16"
+                "anordine.completions-api-webflux.sse.max-back-pressure", "16",
+                "anordine.completions-api-webflux.sse.emit-usage-events", "false"
         ))) {
             ChatSseManager manager = context.getBean(ChatSseManager.class);
 
             assertEquals(Duration.ofSeconds(5), manager.getHeartbeatEvery());
             assertEquals(Duration.ofSeconds(1), manager.getTypingEvery());
             assertEquals(16, manager.getMaxBackPressure());
+            assertFalse(manager.isEmitUsageEvents());
         }
     }
 

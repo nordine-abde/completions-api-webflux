@@ -1,6 +1,7 @@
 package com.anordine.completions.api.webflux;
 
 import com.anordine.completions.api.webflux.model.CompletionRequest;
+import com.anordine.completions.api.webflux.model.CompletionStreamOptions;
 import com.anordine.completions.api.webflux.model.enums.prompt.CompletionPromptCacheRetention;
 import com.anordine.completions.api.webflux.model.enums.toolchoice.CompletionAllowedToolsMode;
 import com.anordine.completions.api.webflux.model.enums.toolchoice.CompletionToolChoiceMode;
@@ -196,6 +197,40 @@ class CompletionRequestExamplesTest {
         CompletionToolMessage toolMessage =
                 assertInstanceOf(CompletionToolMessage.class, request.getMessages().get(1));
         assertEquals("call_123", toolMessage.getToolCallId());
+    }
+
+    @Test
+    void serializesAndDeserializesStreamingFields() throws Exception {
+        CompletionRequest request = objectMapper.readValue("""
+                {
+                  "model": "gpt-5.4",
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "Hello"
+                    }
+                  ],
+                  "stream": true,
+                  "stream_options": {
+                    "include_usage": true,
+                    "include_obfuscation": false
+                  }
+                }
+                """, CompletionRequest.class);
+
+        assertEquals(Boolean.TRUE, request.getStream());
+        assertNotNull(request.getStreamOptions());
+        assertEquals(Boolean.TRUE, request.getStreamOptions().getIncludeUsage());
+        assertEquals(Boolean.FALSE, request.getStreamOptions().getIncludeObfuscation());
+
+        String json = objectMapper.writeValueAsString(new CompletionRequest()
+                .withStream(true)
+                .withStreamOptions(new CompletionStreamOptions(true, false)));
+
+        assertTrue(json.contains("\"stream\":true"));
+        assertTrue(json.contains("\"stream_options\":{"));
+        assertTrue(json.contains("\"include_usage\":true"));
+        assertTrue(json.contains("\"include_obfuscation\":false"));
     }
 
 

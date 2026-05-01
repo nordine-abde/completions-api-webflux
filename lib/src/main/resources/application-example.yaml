@@ -35,6 +35,7 @@
 # - `sse.heartbeat-every`: 30s
 # - `sse.typing-every`: 3s
 # - `sse.max-back-pressure`: 256
+# - `sse.emit-usage-events`: true
 anordine:
   completions-api-webflux:
     sse:
@@ -42,6 +43,7 @@ anordine:
       heartbeat-every: 30s
       typing-every: 3s
       max-back-pressure: 256
+      emit-usage-events: true
     history:
       autoconfigure: false
       mode: memory

@@ -200,6 +200,10 @@
             <option value="open-router">OpenRouter</option>
         </select>
         <input id="model" aria-label="Model" value="gpt-4o-mini">
+        <select id="mode" aria-label="Mode">
+            <option value="stream">Streaming</option>
+            <option value="simple">Simple</option>
+        </select>
     </div>
 </header>
 
@@ -222,8 +226,10 @@
     const sendButton = document.querySelector("#send");
     const providerInput = document.querySelector("#provider");
     const modelInput = document.querySelector("#model");
+    const modeInput = document.querySelector("#mode");
 
     let typingElement;
+    const assistantMessages = new Map();
 
     function appendMessage(kind, content) {
         const element = document.createElement("div");
@@ -248,6 +254,36 @@
             clearTyping();
             const data = JSON.parse(event.data);
             appendMessage(data.role === "user" ? "user" : "assistant", data.content || "");
+            if (data.role === "assistant") {
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        });
+
+        events.addEventListener("CHAT_MESSAGE_START", event => {
+            clearTyping();
+            const data = JSON.parse(event.data);
+            assistantMessages.set(data.id, appendMessage("assistant", ""));
+        });
+
+        events.addEventListener("CHAT_MESSAGE_CHUNK", event => {
+            clearTyping();
+            const data = JSON.parse(event.data);
+            let element = assistantMessages.get(data.id);
+            if (!element) {
+                element = appendMessage("assistant", "");
+                assistantMessages.set(data.id, element);
+            }
+            element.textContent += data.content || "";
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        events.addEventListener("CHAT_MESSAGE_DONE", event => {
+            clearTyping();
+            const data = JSON.parse(event.data);
+            assistantMessages.delete(data.id);
+            sendButton.disabled = false;
+            messageInput.focus();
         });
 
         events.addEventListener("TYPING", () => {
@@ -285,6 +321,7 @@
                     chatId,
                     provider: providerInput.value,
                     model: modelInput.value,
+                    mode: modeInput.value,
                     message
                 })
             });

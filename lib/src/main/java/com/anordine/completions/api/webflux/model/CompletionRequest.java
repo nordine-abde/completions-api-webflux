@@ -16,6 +16,7 @@ import com.anordine.completions.api.webflux.model.toolchoice.jackson.ToolChoiceO
 import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.anordine.completions.api.webflux.util.DeepCloneUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.annotation.JsonNaming;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionRequest implements DeepClonable<CompletionRequest> {
 
@@ -42,6 +44,8 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
     private CompletionResponseFormat responseFormat;
     private String safetyIdentifier;
     private Boolean store;
+    private Boolean stream;
+    private CompletionStreamOptions streamOptions;
     private Double temperature;
     @JsonDeserialize(using = ToolChoiceOptionInterfaceDeserializer.class)
     private ToolChoiceOptionInterface toolChoice;
@@ -50,6 +54,22 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
     private Integer topLogprobs;
     private Double topP;
     private CompletionVerbosity verbosity;
+
+    public Boolean getStream() {
+        return stream;
+    }
+
+    public void setStream(Boolean stream) {
+        this.stream = stream;
+    }
+
+    public CompletionStreamOptions getStreamOptions() {
+        return streamOptions;
+    }
+
+    public void setStreamOptions(CompletionStreamOptions streamOptions) {
+        this.streamOptions = streamOptions;
+    }
 
     public CompletionVerbosity getVerbosity() {
         return verbosity;
@@ -274,6 +294,16 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
         return this;
     }
 
+    public CompletionRequest withStream(Boolean stream) {
+        this.stream = stream;
+        return this;
+    }
+
+    public CompletionRequest withStreamOptions(CompletionStreamOptions streamOptions) {
+        this.streamOptions = streamOptions;
+        return this;
+    }
+
     public CompletionRequest addMessage(CompletionMessage completionMessage) {
         if (completionMessage == null) {
             throw new IllegalArgumentException("completionMessage must not be null");
@@ -419,6 +449,8 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
         clone.setResponseFormat(this.responseFormat == null ? null : this.responseFormat.deepClone());
         clone.setSafetyIdentifier(this.safetyIdentifier);
         clone.setStore(this.store);
+        clone.setStream(this.stream);
+        clone.setStreamOptions(this.streamOptions == null ? null : this.streamOptions.deepClone());
         clone.setTemperature(this.temperature);
         clone.setToolChoice(this.toolChoice == null ? null : this.toolChoice.deepClone());
         clone.setTools(cloneTools());

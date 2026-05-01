@@ -1,6 +1,7 @@
 package com.anordine.completions.api.webflux.helper.sse;
 
 import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
+import com.anordine.completions.api.webflux.model.usage.CompletionUsage;
 
 import java.util.UUID;
 
@@ -11,6 +12,7 @@ public class SseEventMessage {
     private String content;
     private CompletionRole role;
     private EventType eventType;
+    private CompletionUsage usage;
 
     public SseEventMessage(UUID id, UUID chatId, String content, CompletionRole role, EventType eventType) {
         this.id = id;
@@ -23,6 +25,12 @@ public class SseEventMessage {
     public SseEventMessage(EventType eventType, String content) {
         this.eventType = eventType;
         this.content = content;
+    }
+
+    public SseEventMessage(UUID chatId, CompletionUsage usage) {
+        this.chatId = chatId;
+        this.usage = usage;
+        this.eventType = EventType.USAGE;
     }
 
     public UUID getId() {
@@ -63,5 +71,13 @@ public class SseEventMessage {
 
     public void setEventType(EventType eventType) {
         this.eventType = eventType;
+    }
+
+    public CompletionUsage getUsage() {
+        return usage;
+    }
+
+    public void setUsage(CompletionUsage usage) {
+        this.usage = usage;
     }
 }

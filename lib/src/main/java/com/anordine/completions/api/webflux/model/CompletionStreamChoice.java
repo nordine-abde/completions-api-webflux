@@ -1,4 +1,4 @@
-package com.anordine.completions.api.webflux.model.message;
+package com.anordine.completions.api.webflux.model;
 
 import com.anordine.completions.api.webflux.model.enums.finish.CompletionFinishReason;
 import com.anordine.completions.api.webflux.util.DeepClonable;
@@ -10,22 +10,11 @@ import tools.jackson.databind.annotation.JsonNaming;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CompletionChoices implements DeepClonable<CompletionChoices> {
+public class CompletionStreamChoice implements DeepClonable<CompletionStreamChoice> {
 
     private CompletionFinishReason finishReason;
     private Integer index;
-    private CompletionAssistantMessage message;
-
-    public CompletionChoices() {
-    }
-
-    public CompletionChoices(CompletionFinishReason finishReason,
-                             Integer index,
-                             CompletionAssistantMessage message) {
-        this.finishReason = finishReason;
-        this.index = index;
-        this.message = message;
-    }
+    private CompletionStreamDelta delta;
 
     public CompletionFinishReason getFinishReason() {
         return finishReason;
@@ -43,20 +32,20 @@ public class CompletionChoices implements DeepClonable<CompletionChoices> {
         this.index = index;
     }
 
-    public CompletionAssistantMessage getMessage() {
-        return message;
+    public CompletionStreamDelta getDelta() {
+        return delta;
     }
 
-    public void setMessage(CompletionAssistantMessage message) {
-        this.message = message;
+    public void setDelta(CompletionStreamDelta delta) {
+        this.delta = delta;
     }
 
     @Override
-    public CompletionChoices deepClone() {
-        return new CompletionChoices(
-                this.finishReason,
-                this.index,
-                this.message == null ? null : this.message.deepClone()
-        );
+    public CompletionStreamChoice deepClone() {
+        CompletionStreamChoice clone = new CompletionStreamChoice();
+        clone.setFinishReason(this.finishReason);
+        clone.setIndex(this.index);
+        clone.setDelta(this.delta == null ? null : this.delta.deepClone());
+        return clone;
     }
 }

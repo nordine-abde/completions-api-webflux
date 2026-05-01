@@ -11,6 +11,7 @@ public class SseProperties {
     private Duration heartbeatEvery = Duration.ofSeconds(30);
     private Duration typingEvery = Duration.ofSeconds(3);
     private int maxBackPressure = 256;
+    private boolean emitUsageEvents = true;
 
     public boolean isAutoconfigure() {
         return autoconfigure;
@@ -42,5 +43,13 @@ public class SseProperties {
 
     public void setMaxBackPressure(int maxBackPressure) {
         this.maxBackPressure = maxBackPressure;
+    }
+
+    public boolean isEmitUsageEvents() {
+        return emitUsageEvents;
+    }
+
+    public void setEmitUsageEvents(boolean emitUsageEvents) {
+        this.emitUsageEvents = emitUsageEvents;
     }
 }

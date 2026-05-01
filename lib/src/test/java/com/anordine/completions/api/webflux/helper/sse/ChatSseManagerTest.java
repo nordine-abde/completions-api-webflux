@@ -1,6 +1,7 @@
 package com.anordine.completions.api.webflux.helper.sse;
 
 import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
+import com.anordine.completions.api.webflux.model.usage.CompletionUsage;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.codec.ServerSentEvent;
 import reactor.core.Disposable;
@@ -47,6 +48,59 @@ class ChatSseManagerTest {
             assertEquals("hello", message.getContent());
             assertEquals(CompletionRole.ASSISTANT, message.getRole());
             assertEquals(EventType.CHAT_MESSAGE, message.getEventType());
+        } finally {
+            subscription.dispose();
+            manager.shutdown();
+        }
+    }
+
+    @Test
+    void emitChunkAndDonePublishStreamingEvents() {
+        ChatSseManager manager = new ChatSseManager(Duration.ofHours(1), 8);
+        UUID chatId = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+        List<ServerSentEvent<SseEventMessage>> events = new ArrayList<>();
+
+        Disposable subscription = manager.createSseStream(chatId).subscribe(events::add);
+
+        try {
+            assertEquals(Sinks.EmitResult.OK, manager.emitMessageStart(chatId, messageId, CompletionRole.ASSISTANT));
+            assertEquals(Sinks.EmitResult.OK, manager.emitChunk(chatId, messageId, "Hel", CompletionRole.ASSISTANT));
+            assertEquals(Sinks.EmitResult.OK, manager.emitMessageDone(chatId, messageId, "Hello", CompletionRole.ASSISTANT));
+
+            assertEquals(3, events.size());
+            assertEquals(EventType.CHAT_MESSAGE_START.name(), events.get(0).event());
+            assertEquals(EventType.CHAT_MESSAGE_CHUNK.name(), events.get(1).event());
+            assertEquals("Hel", events.get(1).data().getContent());
+            assertEquals(EventType.CHAT_MESSAGE_DONE.name(), events.get(2).event());
+            assertEquals("Hello", events.get(2).data().getContent());
+        } finally {
+            subscription.dispose();
+            manager.shutdown();
+        }
+    }
+
+    @Test
+    void emitUsagePublishesUsageEvent() {
+        ChatSseManager manager = new ChatSseManager(Duration.ofHours(1), Duration.ofSeconds(1), 8, true);
+        UUID chatId = UUID.randomUUID();
+        List<ServerSentEvent<SseEventMessage>> events = new ArrayList<>();
+
+        Disposable subscription = manager.createSseStream(chatId).subscribe(events::add);
+
+        try {
+            assertTrue(manager.isEmitUsageEvents());
+            CompletionUsage usage = new CompletionUsage();
+            usage.setPromptTokens(3);
+            usage.setCompletionTokens(2);
+            usage.setTotalTokens(5);
+
+            assertEquals(Sinks.EmitResult.OK, manager.emitUsage(chatId, usage));
+
+            assertEquals(1, events.size());
+            assertEquals(EventType.USAGE.name(), events.getFirst().event());
+            assertEquals(chatId, events.getFirst().data().getChatId());
+            assertEquals(5, events.getFirst().data().getUsage().getTotalTokens());
         } finally {
             subscription.dispose();
             manager.shutdown();

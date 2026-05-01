@@ -3,12 +3,14 @@ package com.anordine.completions.api.webflux.model.format;
 import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.anordine.completions.api.webflux.util.DeepCloneUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CompletionResponseFormatJsonSchemaDefinition
         implements DeepClonable<CompletionResponseFormatJsonSchemaDefinition> {

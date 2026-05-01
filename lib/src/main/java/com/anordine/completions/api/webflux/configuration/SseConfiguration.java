@@ -21,7 +21,8 @@ public class SseConfiguration {
         return new ChatSseManager(
                 properties.getHeartbeatEvery(),
                 properties.getTypingEvery(),
-                properties.getMaxBackPressure()
+                properties.getMaxBackPressure(),
+                properties.isEmitUsageEvents()
         );
     }
 }

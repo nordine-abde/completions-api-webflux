@@ -74,15 +74,16 @@ SSE defaults:
 - `anordine.completions-api-webflux.sse.heartbeat-every=30s`
 - `anordine.completions-api-webflux.sse.typing-every=3s`
 - `anordine.completions-api-webflux.sse.max-back-pressure=256`
+- `anordine.completions-api-webflux.sse.emit-usage-events=true`
 
 ## Convenience Usage
 
-For straightforward text chat calls you can build requests fluently and wrap any configured compatible `WebClient` with `CompletionService`.
+For straightforward text chat calls you can build requests fluently and wrap any configured compatible `WebClient` with `CompletionHelper`.
 
 ```java
 WebClient openAiWebClient = applicationContext.getBean("openAiWebClient", WebClient.class);
 
-CompletionService completionHelper = new CompletionService(openAiWebClient);
+CompletionHelper completionHelper = new CompletionHelper(openAiWebClient);
 
 CompletionResponse response = completionHelper.callCompletionsApi(
         new CompletionRequest()
@@ -93,6 +94,8 @@ CompletionResponse response = completionHelper.callCompletionsApi(
 ```
 
 There are also shorter overloads for common cases such as `callCompletionsApi("gpt-5.4", "Hello")` and helpers like `CompletionRequest.create("gpt-5.4", "Hello")`.
+
+For streamed Chat Completions, use `streamCompletionsApi(...)`. The helper sends `stream=true`, requests `text/event-stream`, parses OpenAI-compatible chat completion chunks, and stops before the `[DONE]` marker.
 
 ## Chat Completions Coverage
 
@@ -111,12 +114,9 @@ Some documented Chat Completions features are still out of scope for the current
 - web search request DTOs
 - several optional advanced request fields still planned for a later version
 
-### Streaming Is Not Included
+### Streaming Support
 
-Streaming-related request support is not part of the current version, including:
-
-- `stream`
-- `stream_options`
+The DTO model includes `stream` and `stream_options`, and `CompletionHelper` exposes `streamCompletionsApi(...)` plus `streamCompletionsApiWithHistory(...)`. The SSE helper can forward chunks as `CHAT_MESSAGE_CHUNK`, emit final assistant completion as `CHAT_MESSAGE_DONE`, and optionally emit token usage as `USAGE`.
 
 ### Deprecated Features Are Intentionally Out Of Scope
 
@@ -135,7 +135,7 @@ If you use this library in its current state, prefer:
 
 - text-only request messages
 - `tool_calls` instead of deprecated function-calling fields
-- non-streaming chat completions usage
+- non-streaming or streamed chat completions usage
 - providers or gateways that accept OpenAI-compatible bearer-auth chat completions requests
 - currently modeled request and response features only
 

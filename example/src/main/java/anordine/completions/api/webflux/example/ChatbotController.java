@@ -6,9 +6,17 @@ import com.anordine.completions.api.webflux.helper.sse.ChatSseManager;
 import com.anordine.completions.api.webflux.helper.sse.SseEventMessage;
 import com.anordine.completions.api.webflux.model.CompletionRequest;
 import com.anordine.completions.api.webflux.model.CompletionResponse;
+import com.anordine.completions.api.webflux.model.CompletionStreamChoice;
+import com.anordine.completions.api.webflux.model.CompletionStreamDelta;
+import com.anordine.completions.api.webflux.model.CompletionStreamOptions;
+import com.anordine.completions.api.webflux.model.CompletionStreamResponse;
+import com.anordine.completions.api.webflux.model.CompletionStreamToolCall;
 import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
 import com.anordine.completions.api.webflux.model.message.CompletionAssistantMessage;
+import com.anordine.completions.api.webflux.model.message.CompletionChoices;
 import com.anordine.completions.api.webflux.model.message.CompletionUserMessage;
+import com.anordine.completions.api.webflux.model.tool.CompletionMessageCustomTool;
+import com.anordine.completions.api.webflux.model.tool.CompletionMessageFunctionTool;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -69,22 +78,104 @@ public class ChatbotController {
         String provider = normalizeProvider(request.provider());
         String model = valueOrDefault(request.model(), defaultModel);
         String message = requireMessage(request.message());
+        ChatMode mode = normalizeMode(request.mode());
         CompletionUserMessage userMessage = new CompletionUserMessage(message);
+        UUID assistantMessageId = UUID.randomUUID();
 
         sseManager.setPending(chatId, true);
         sseManager.emitMessage(chatId, UUID.randomUUID(), message, CompletionRole.USER);
 
+        Mono<ChatResponse> response = mode == ChatMode.STREAM
+                ? sendStreaming(chatId, provider, model, userMessage, assistantMessageId)
+                : sendSimple(chatId, provider, model, userMessage, assistantMessageId);
+
         return ensureChat(chatId.toString(), model)
-                .then(helper(provider).callCompletionsApiWithHistory(chatId.toString(), userMessage))
-                .map(response -> toChatResponse(chatId, provider, model, response))
-                .doOnNext(response -> sseManager.emitMessage(
-                        chatId,
-                        UUID.randomUUID(),
-                        response.content(),
-                        CompletionRole.ASSISTANT
-                ))
+                .then(response)
                 .doOnError(error -> sseManager.emitError(chatId, error.getMessage()))
                 .doFinally(signalType -> sseManager.setPending(chatId, false));
+    }
+
+    private Mono<ChatResponse> sendStreaming(
+            UUID chatId,
+            String provider,
+            String model,
+            CompletionUserMessage userMessage,
+            UUID assistantMessageId
+    ) {
+        StringBuilder assistantContent = new StringBuilder();
+        sseManager.emitMessageStart(chatId, assistantMessageId, CompletionRole.ASSISTANT);
+
+        return helper(provider).streamCompletionsApiWithHistory(chatId.toString(), userMessage)
+                .doOnNext(response -> emitStreamResponse(chatId, assistantMessageId, response, assistantContent))
+                .doOnComplete(() -> sseManager.emitMessageDone(
+                        chatId,
+                        assistantMessageId,
+                        assistantContent.toString(),
+                        CompletionRole.ASSISTANT
+                ))
+                .then(Mono.fromSupplier(() -> new ChatResponse(
+                        chatId,
+                        provider,
+                        model,
+                        ChatMode.STREAM.value,
+                        assistantContent.toString()
+                )))
+                .doOnError(e -> {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+
+
+                    if (e instanceof WebClientResponseException webClientResponseException){
+                        System.out.println(webClientResponseException.getResponseBodyAs(String.class));
+                    }
+                });
+    }
+
+    private Mono<ChatResponse> sendSimple(
+            UUID chatId,
+            String provider,
+            String model,
+            CompletionUserMessage userMessage,
+            UUID assistantMessageId
+    ) {
+        return historyManager.addMessage(chatId.toString(), userMessage)
+                .map(this::asNonStreamingRequest)
+                .flatMap(helper(provider)::callCompletionsApi)
+                .flatMap(response -> {
+                    CompletionAssistantMessage assistantMessage = assistantMessage(response);
+                    String content = assistantMessage == null ? "" : valueOrDefault(assistantMessage.getContent(), "");
+                    if (response.getUsage() != null && sseManager.isEmitUsageEvents()) {
+                        sseManager.emitUsage(chatId, response.getUsage());
+                    }
+                    sseManager.emitMessage(chatId, assistantMessageId, content, CompletionRole.ASSISTANT);
+
+                    Mono<Void> addAssistantMessage = assistantMessage == null
+                            ? Mono.empty()
+                            : historyManager.addMessage(chatId.toString(), assistantMessage).then();
+
+                    return addAssistantMessage.thenReturn(new ChatResponse(
+                            chatId,
+                            provider,
+                            model,
+                            ChatMode.SIMPLE.value,
+                            content
+                    ));
+                });
+    }
+
+    private CompletionRequest asNonStreamingRequest(CompletionRequest request) {
+        CompletionRequest nonStreamingRequest = request.deepClone();
+        nonStreamingRequest.setStream(null);
+        nonStreamingRequest.setStreamOptions(null);
+        return nonStreamingRequest;
+    }
+
+    private CompletionAssistantMessage assistantMessage(CompletionResponse response) {
+        if (response.getChoices() == null || response.getChoices().isEmpty()) {
+            return null;
+        }
+        CompletionChoices choice = response.getChoices().getFirst();
+        return choice == null ? null : choice.getMessage();
     }
 
     private Mono<Void> ensureChat(String chatId, String model) {
@@ -92,7 +183,9 @@ public class ChatbotController {
                 .then()
                 .onErrorResume(NoSuchElementException.class, exception -> historyManager.loadChat(
                         chatId,
-                        new CompletionRequest().withModel(model)
+                        new CompletionRequest()
+                                .withModel(model)
+                                .withStreamOptions(new CompletionStreamOptions().withIncludeUsage(true))
                 ));
     }
 
@@ -129,26 +222,78 @@ public class ChatbotController {
         return value == null || value.isBlank() ? defaultValue : value.trim();
     }
 
-    private ChatResponse toChatResponse(
-            UUID chatId,
-            String provider,
-            String model,
-            CompletionResponse response
-    ) {
-        return new ChatResponse(chatId, provider, model, assistantContent(response));
-    }
-
-    private String assistantContent(CompletionResponse response) {
-        if (response.getChoices() == null || response.getChoices().isEmpty()) {
-            return "";
+    private ChatMode normalizeMode(String mode) {
+        if (mode == null || mode.isBlank()) {
+            return ChatMode.STREAM;
         }
-        CompletionAssistantMessage message = response.getChoices().getFirst().getMessage();
-        return message == null || message.getContent() == null ? "" : message.getContent();
+        return switch (mode.trim().toLowerCase()) {
+            case "simple", "non-streaming", "non_streaming", "sync" -> ChatMode.SIMPLE;
+            case "stream", "streaming" -> ChatMode.STREAM;
+            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+        };
     }
 
-    public record ChatRequest(UUID chatId, String provider, String model, String message) {
+    private void emitStreamResponse(
+            UUID chatId,
+            UUID messageId,
+            CompletionStreamResponse response,
+            StringBuilder assistantContent
+    ) {
+        if (response.getUsage() != null && sseManager.isEmitUsageEvents()) {
+            sseManager.emitUsage(chatId, response.getUsage());
+        }
+        if (response.getChoices() == null) {
+            return;
+        }
+        for (CompletionStreamChoice choice : response.getChoices()) {
+            CompletionStreamDelta delta = choice == null ? null : choice.getDelta();
+            if (delta == null) {
+                continue;
+            }
+            if (delta.getContent() != null) {
+                assistantContent.append(delta.getContent());
+                sseManager.emitChunk(chatId, messageId, delta.getContent(), CompletionRole.ASSISTANT);
+            }
+            if (delta.getToolCalls() != null) {
+                for (CompletionStreamToolCall toolCall : delta.getToolCalls()) {
+                    String toolCallContent = toolCallContent(toolCall);
+                    if (toolCallContent != null && !toolCallContent.isBlank()) {
+                        sseManager.emitToolCallChunk(chatId, messageId, toolCallContent, CompletionRole.ASSISTANT);
+                    }
+                }
+            }
+        }
     }
 
-    public record ChatResponse(UUID chatId, String provider, String model, String content) {
+    private String toolCallContent(CompletionStreamToolCall toolCall) {
+        if (toolCall == null) {
+            return null;
+        }
+        CompletionMessageFunctionTool function = toolCall.getFunction();
+        if (function != null) {
+            return function.getArguments() != null ? function.getArguments() : function.getName();
+        }
+        CompletionMessageCustomTool custom = toolCall.getCustom();
+        if (custom != null) {
+            return custom.getInput() != null ? custom.getInput() : custom.getName();
+        }
+        return toolCall.getId();
+    }
+
+    private enum ChatMode {
+        SIMPLE("simple"),
+        STREAM("stream");
+
+        private final String value;
+
+        ChatMode(String value) {
+            this.value = value;
+        }
+    }
+
+    public record ChatRequest(UUID chatId, String provider, String model, String mode, String message) {
+    }
+
+    public record ChatResponse(UUID chatId, String provider, String model, String mode, String content) {
     }
 }

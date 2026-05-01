@@ -1,6 +1,7 @@
 package com.anordine.completions.api.webflux.helper.sse;
 
 import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
+import com.anordine.completions.api.webflux.model.usage.CompletionUsage;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.codec.ServerSentEvent;
 import reactor.core.publisher.Flux;
@@ -17,15 +18,21 @@ public class ChatSseManager {
     private final Duration heartbeatEvery;
     private final Duration typingEvery;
     private final int maxBackPressure;
+    private final boolean emitUsageEvents;
 
     public ChatSseManager(Duration heartbeatEvery, int maxBackPressure) {
         this(heartbeatEvery, Duration.ofSeconds(3), maxBackPressure);
     }
 
     public ChatSseManager(Duration heartbeatEvery, Duration typingEvery, int maxBackPressure) {
+        this(heartbeatEvery, typingEvery, maxBackPressure, true);
+    }
+
+    public ChatSseManager(Duration heartbeatEvery, Duration typingEvery, int maxBackPressure, boolean emitUsageEvents) {
         this.heartbeatEvery = heartbeatEvery;
         this.typingEvery = typingEvery;
         this.maxBackPressure = maxBackPressure;
+        this.emitUsageEvents = emitUsageEvents;
     }
 
     private ChatStream getOrCreateStream(UUID chatId) {
@@ -74,8 +81,20 @@ public class ChatSseManager {
         return emit(chatId, EventType.CHAT_MESSAGE_CHUNK, messageId, content, role);
     }
 
+    public Sinks.EmitResult emitMessageStart(UUID chatId, UUID messageId, CompletionRole role) {
+        return emit(chatId, EventType.CHAT_MESSAGE_START, messageId, null, role);
+    }
+
+    public Sinks.EmitResult emitMessageDone(UUID chatId, UUID messageId, String content, CompletionRole role) {
+        return emit(chatId, EventType.CHAT_MESSAGE_DONE, messageId, content, role);
+    }
+
     public Sinks.EmitResult emitToolCall(UUID chatId, UUID messageId, String content, CompletionRole role) {
         return emit(chatId, EventType.TOOL_CALL, messageId, content, role);
+    }
+
+    public Sinks.EmitResult emitToolCallChunk(UUID chatId, UUID messageId, String content, CompletionRole role) {
+        return emit(chatId, EventType.TOOL_CALL_CHUNK, messageId, content, role);
     }
 
     public Sinks.EmitResult emitTitleUpdate(UUID chatId, String title) {
@@ -84,6 +103,15 @@ public class ChatSseManager {
 
     public Sinks.EmitResult emitError(UUID chatId, String error) {
         return emit(chatId, EventType.ERROR, null, error, null);
+    }
+
+    public Sinks.EmitResult emitUsage(UUID chatId, CompletionUsage usage) {
+        ChatStream stream = getOrCreateStream(chatId);
+        touch(stream);
+        return stream.emit(ServerSentEvent.<SseEventMessage>builder()
+                .event(EventType.USAGE.name())
+                .data(new SseEventMessage(chatId, usage))
+                .build());
     }
 
     public Sinks.EmitResult emit(UUID chatId, EventType eventType, String content) {
@@ -133,6 +161,10 @@ public class ChatSseManager {
 
     public int getMaxBackPressure() {
         return maxBackPressure;
+    }
+
+    public boolean isEmitUsageEvents() {
+        return emitUsageEvents;
     }
 
     private void touch(ChatStream stream) {
