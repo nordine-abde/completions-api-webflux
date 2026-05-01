@@ -11,17 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationException;
 import reactor.core.publisher.Flux;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,8 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @EnabledIfEnvironmentVariable(named = "REDIS_INTEGRATION_TESTS", matches = "true")
 class InRedisHistoryManagerTest {
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private LettuceConnectionFactory connectionFactory;
     private InRedisHistoryManager historyManager;
@@ -146,7 +141,7 @@ class InRedisHistoryManagerTest {
     private <T> ReactiveRedisTemplate<String, T> redisTemplate(Class<T> valueType) {
         RedisSerializationContext<String, T> context = RedisSerializationContext
                 .<String, T>newSerializationContext(RedisSerializer.string())
-                .value(new Jackson3RedisSerializer<>(valueType))
+                .value(new JacksonJsonRedisSerializer<>(valueType))
                 .build();
         return new ReactiveRedisTemplate<>(connectionFactory, context);
     }
@@ -161,34 +156,4 @@ class InRedisHistoryManagerTest {
         }
     }
 
-    private record Jackson3RedisSerializer<T>(Class<T> type) implements RedisSerializer<T> {
-
-        private Jackson3RedisSerializer {
-            Objects.requireNonNull(type, "type must not be null");
-        }
-
-        @Override
-        public byte[] serialize(T value) throws SerializationException {
-            if (value == null) {
-                return new byte[0];
-            }
-            try {
-                return OBJECT_MAPPER.writeValueAsBytes(value);
-            } catch (JacksonException exception) {
-                throw new SerializationException("Could not serialize " + type.getName(), exception);
-            }
-        }
-
-        @Override
-        public T deserialize(byte[] bytes) throws SerializationException {
-            if (bytes == null || bytes.length == 0) {
-                return null;
-            }
-            try {
-                return OBJECT_MAPPER.readValue(bytes, type);
-            } catch (JacksonException exception) {
-                throw new SerializationException("Could not deserialize " + type.getName(), exception);
-            }
-        }
-    }
 }

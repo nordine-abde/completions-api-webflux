@@ -37,6 +37,27 @@ class MyConfiguration {
 }
 ```
 
+`HistoryConfiguration` provides opt-in `IHistoryManager` beans with the same explicit-import style.
+
+Example:
+```java
+@Configuration
+@Import(HistoryConfiguration.class)
+class MyConfiguration {
+}
+```
+
+History defaults:
+
+- `anordine.completions-api-webflux.history.autoconfigure=false`
+- `anordine.completions-api-webflux.history.mode=memory`
+- `anordine.completions-api-webflux.history.redis.host=127.0.0.1`
+- `anordine.completions-api-webflux.history.redis.port=6379`
+- `anordine.completions-api-webflux.history.redis.prefix=completions-api-webflux:history`
+- `anordine.completions-api-webflux.history.redis.autoconfigure-serializers=true`
+
+When `history.mode=redis`, the default Redis serializer setup creates named `ReactiveRedisTemplate` beans for `CompletionRequest` and `CompletionMessage`. Set `history.redis.autoconfigure-serializers=false` to provide those Redis templates yourself.
+
 ## Convenience Usage
 
 For straightforward text chat calls you can build requests fluently and wrap any configured compatible `WebClient` with `CompletionService`.
