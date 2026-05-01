@@ -93,6 +93,7 @@ class CompletionModelDeepCloneTest {
         original.setTopLogprobs(4);
         original.setTopP(0.9);
         original.setVerbosity(CompletionVerbosity.HIGH);
+        original.setExtraBody(jsonObjectMap());
 
         CompletionRequest clone = original.deepClone();
 
@@ -110,6 +111,7 @@ class CompletionModelDeepCloneTest {
         original.getTools().clear();
         namedFunctionChoice(original.getToolChoice()).getFunction().setName("mutated");
         jsonSchema(original.getResponseFormat()).getJsonSchema().getSchema().put("mutated", true);
+        original.getExtraBody().put("type", "mutated");
 
         assertList(clone);
     }
@@ -143,7 +145,8 @@ class CompletionModelDeepCloneTest {
                 () -> assertEquals(Boolean.TRUE, clone.getLogprobs()),
                 () -> assertEquals(4, clone.getTopLogprobs()),
                 () -> assertEquals(0.9, clone.getTopP()),
-                () -> assertEquals(CompletionVerbosity.HIGH, clone.getVerbosity())
+                () -> assertEquals(CompletionVerbosity.HIGH, clone.getVerbosity()),
+                () -> assertEquals("object", clone.getExtraBody().get("type"))
         );
     }
 

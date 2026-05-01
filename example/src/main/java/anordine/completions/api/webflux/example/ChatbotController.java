@@ -42,9 +42,11 @@ public class ChatbotController {
 
     private static final String OPEN_AI_PROVIDER = "open-ai";
     private static final String OPEN_ROUTER_PROVIDER = "open-router";
+    private static final String DEEPSEEK_PROVIDER = "deepseek";
 
     private final CompletionHelper openAiHelper;
     private final CompletionHelper openRouterHelper;
+    private final CompletionHelper deepSeekHelper;
     private final IHistoryManager historyManager;
     private final ChatSseManager sseManager;
     private final String defaultModel;
@@ -52,6 +54,7 @@ public class ChatbotController {
     public ChatbotController(
             @Qualifier("openAiWebClient") WebClient openAiWebClient,
             @Qualifier("openRouterWebClient") WebClient openRouterWebClient,
+            @Qualifier("deepSeekWebClient") WebClient deepSeekWebClient,
             IHistoryManager historyManager,
             ChatSseManager sseManager,
             @Value("${example.chat.model:gpt-4o-mini}") String defaultModel
@@ -61,6 +64,7 @@ public class ChatbotController {
         this.defaultModel = defaultModel;
         this.openAiHelper = new CompletionHelper(openAiWebClient, historyManager);
         this.openRouterHelper = new CompletionHelper(openRouterWebClient, historyManager);
+        this.deepSeekHelper = new CompletionHelper(deepSeekWebClient, historyManager);
     }
 
     @GetMapping(value = "/{chatId}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -193,6 +197,7 @@ public class ChatbotController {
         return switch (provider) {
             case OPEN_AI_PROVIDER -> openAiHelper;
             case OPEN_ROUTER_PROVIDER -> openRouterHelper;
+            case DEEPSEEK_PROVIDER -> deepSeekHelper;
             default -> throw new IllegalArgumentException("Unsupported provider: " + provider);
         };
     }
@@ -207,6 +212,9 @@ public class ChatbotController {
         }
         if ("openrouter".equals(normalized)) {
             return OPEN_ROUTER_PROVIDER;
+        }
+        if ("deep-seek".equals(normalized)) {
+            return DEEPSEEK_PROVIDER;
         }
         return normalized;
     }

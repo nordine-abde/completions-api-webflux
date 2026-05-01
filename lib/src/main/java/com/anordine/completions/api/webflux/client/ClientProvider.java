@@ -16,6 +16,7 @@ public class ClientProvider {
     private static final String GROQ_BASE_URL = "https://api.groq.com/openai/v1";
     private static final String OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
     private static final String CLAUDE_BASE_URL = "https://api.anthropic.com/v1";
+    private static final String DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 
 
     public static WebClient buildOpenAiWebClient(WebClient.Builder builder, String secretKey) {
@@ -36,6 +37,10 @@ public class ClientProvider {
 
     public static WebClient buildClaudeWebClient(WebClient.Builder builder, String secretKey) {
         return buildCompletionsWebClient(builder, CLAUDE_BASE_URL, secretKey);
+    }
+
+    public static WebClient buildDeepSeekWebClient(WebClient.Builder builder, String secretKey) {
+        return buildCompletionsWebClient(builder, DEEPSEEK_BASE_URL, secretKey);
     }
 
     public static WebClient buildCompletionsWebClient(WebClient.Builder builder,

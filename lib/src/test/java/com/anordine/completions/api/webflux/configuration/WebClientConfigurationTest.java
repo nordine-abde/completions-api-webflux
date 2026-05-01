@@ -28,6 +28,17 @@ class WebClientConfigurationTest {
     }
 
     @Test
+    void shouldRegisterDeepSeekClientWhenEnabled() {
+        try (AnnotationConfigApplicationContext context = createContext(Map.of(
+                "anordine.completions-api-webflux.deepseek.autoconfigure", "true",
+                "anordine.completions-api-webflux.deepseek.secret-key", "test-secret"
+        ))) {
+            assertTrue(context.containsBean("deepSeekWebClient"));
+            assertInstanceOf(WebClient.class, context.getBean("deepSeekWebClient"));
+        }
+    }
+
+    @Test
     void shouldRegisterCustomClientUsingCamelCaseBeanName() {
         try (AnnotationConfigApplicationContext context = createContext(Map.of(
                 "anordine.completions-api-webflux.custom.local-llm.autoconfigure", "true",

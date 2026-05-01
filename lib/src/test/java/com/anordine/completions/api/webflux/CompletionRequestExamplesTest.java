@@ -3,6 +3,7 @@ package com.anordine.completions.api.webflux;
 import com.anordine.completions.api.webflux.model.CompletionRequest;
 import com.anordine.completions.api.webflux.model.CompletionStreamOptions;
 import com.anordine.completions.api.webflux.model.enums.prompt.CompletionPromptCacheRetention;
+import com.anordine.completions.api.webflux.model.enums.resoning.CompletionReasoningEffort;
 import com.anordine.completions.api.webflux.model.enums.toolchoice.CompletionAllowedToolsMode;
 import com.anordine.completions.api.webflux.model.enums.toolchoice.CompletionToolChoiceMode;
 import com.anordine.completions.api.webflux.model.message.CompletionDeveloperMessage;
@@ -18,8 +19,10 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -231,6 +234,24 @@ class CompletionRequestExamplesTest {
         assertTrue(json.contains("\"stream_options\":{"));
         assertTrue(json.contains("\"include_usage\":true"));
         assertTrue(json.contains("\"include_obfuscation\":false"));
+    }
+
+    @Test
+    void serializesExtraBodyPropertiesAtRequestTopLevel() throws Exception {
+        CompletionRequest request = new CompletionRequest()
+                .withModel("deepseek-v4-pro")
+                .addSystemMessage("You are a helpful assistant")
+                .addUserMessage("Hello")
+                .withReasoningEffort(CompletionReasoningEffort.HIGH)
+                .withStream(false)
+                .withExtraBodyProperty("thinking", Map.of("type", "enabled"));
+
+        String json = objectMapper.writeValueAsString(request);
+
+        assertTrue(json.contains("\"reasoning_effort\":\"high\""));
+        assertTrue(json.contains("\"stream\":false"));
+        assertTrue(json.contains("\"thinking\":{\"type\":\"enabled\"}"));
+        assertFalse(json.contains("\"extra_body\""));
     }
 
 

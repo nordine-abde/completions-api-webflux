@@ -8,6 +8,7 @@
 # - geminiWebClient
 # - openRouterWebClient
 # - claudeWebClient
+# - deepSeekWebClient
 #
 # Custom clients are declared under `custom.<name>`.
 # `<name>` is converted to camelCase for the bean name:
@@ -67,6 +68,9 @@ anordine:
     claude:
       autoconfigure: true
       secret-key: CLAUDE_SECRET
+    deepseek:
+      autoconfigure: true
+      secret-key: DEEPSEEK_SECRET
     custom:
       # Creates a bean named `localLlm`
       local-llm:

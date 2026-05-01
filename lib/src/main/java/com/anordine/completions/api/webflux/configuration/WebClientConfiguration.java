@@ -75,6 +75,17 @@ public class WebClientConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(
+            prefix = "anordine.completions-api-webflux.deepseek",
+            name = "autoconfigure",
+            havingValue = "true"
+    )
+    public WebClient deepSeekWebClient(WebClient.Builder builder,
+                                       @Value("${anordine.completions-api-webflux.deepseek.secret-key}") String secretKey) {
+        return ClientProvider.buildDeepSeekWebClient(builder, secretKey);
+    }
+
+    @Bean
     public static BeanDefinitionRegistryPostProcessor customWebClientBeans() {
         return new CustomWebClientBeanFactoryPostProcessor();
     }

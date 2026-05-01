@@ -15,6 +15,9 @@ import com.anordine.completions.api.webflux.model.toolchoice.abs.ToolChoiceOptio
 import com.anordine.completions.api.webflux.model.toolchoice.jackson.ToolChoiceOptionInterfaceDeserializer;
 import com.anordine.completions.api.webflux.util.DeepClonable;
 import com.anordine.completions.api.webflux.util.DeepCloneUtil;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -23,7 +26,9 @@ import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -54,6 +59,7 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
     private Integer topLogprobs;
     private Double topP;
     private CompletionVerbosity verbosity;
+    private Map<String, Object> extraBody;
 
     public Boolean getStream() {
         return stream;
@@ -77,6 +83,28 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
 
     public void setVerbosity(CompletionVerbosity verbosity) {
         this.verbosity = verbosity;
+    }
+
+    @JsonIgnore
+    public Map<String, Object> getExtraBody() {
+        return extraBody;
+    }
+
+    public void setExtraBody(Map<String, Object> extraBody) {
+        this.extraBody = extraBody == null ? null : new LinkedHashMap<>(extraBody);
+    }
+
+    @JsonAnyGetter
+    Map<String, Object> getExtraBodyProperties() {
+        return extraBody;
+    }
+
+    @JsonAnySetter
+    public void putExtraBody(String name, Object value) {
+        if (extraBody == null) {
+            extraBody = new LinkedHashMap<>();
+        }
+        extraBody.put(name, value);
     }
 
     public Double getTopP() {
@@ -304,6 +332,16 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
         return this;
     }
 
+    public CompletionRequest withExtraBody(Map<String, Object> extraBody) {
+        setExtraBody(extraBody);
+        return this;
+    }
+
+    public CompletionRequest withExtraBodyProperty(String name, Object value) {
+        putExtraBody(name, value);
+        return this;
+    }
+
     public CompletionRequest addMessage(CompletionMessage completionMessage) {
         if (completionMessage == null) {
             throw new IllegalArgumentException("completionMessage must not be null");
@@ -458,6 +496,7 @@ public class CompletionRequest implements DeepClonable<CompletionRequest> {
         clone.setTopLogprobs(this.topLogprobs);
         clone.setTopP(this.topP);
         clone.setVerbosity(this.verbosity);
+        clone.setExtraBody(DeepCloneUtil.deepCloneStringObjectMap(this.extraBody));
         return clone;
     }
 

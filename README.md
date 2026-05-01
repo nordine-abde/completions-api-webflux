@@ -10,7 +10,7 @@ This repository currently includes:
 - Jackson enum wire-value mapping using `@JsonValue` and `@JsonCreator`
 - discriminator-based subtype mapping for fields such as `role`, `type`, tool choice, and response format
 - tests covering example-based serialization and deserialization
-- Spring `WebClient` configuration for `open-ai`, `groq`, `gemini`, `open-router`, `claude`, and custom compatible endpoints
+- Spring `WebClient` configuration for `open-ai`, `groq`, `gemini`, `open-router`, `claude`, `deepseek`, and custom compatible endpoints
 
 ## Spring Configuration
 
