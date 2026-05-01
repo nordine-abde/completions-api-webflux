@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Completions Chatbot</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f5f7fb;
+            color: #172033;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #d9e0ec;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .settings {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        select,
+        input,
+        textarea,
+        button {
+            font: inherit;
+        }
+
+        select,
+        input {
+            height: 38px;
+            border: 1px solid #c4ccda;
+            border-radius: 6px;
+            background: #ffffff;
+            padding: 0 10px;
+            color: #172033;
+        }
+
+        main {
+            width: min(980px, 100%);
+            margin: 0 auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        #messages {
+            flex: 1;
+            min-height: 420px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 4px;
+        }
+
+        .message {
+            max-width: 78%;
+            border: 1px solid #d9e0ec;
+            border-radius: 8px;
+            padding: 11px 13px;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #ffffff;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: #113f67;
+            border-color: #113f67;
+            color: #ffffff;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+        }
+
+        .message.status,
+        .message.error {
+            align-self: center;
+            max-width: 100%;
+            font-size: 13px;
+            color: #5c667a;
+            background: transparent;
+            border: 0;
+            padding: 4px 0;
+        }
+
+        .message.error {
+            color: #b42318;
+        }
+
+        form {
+            padding: 18px 24px 24px;
+            border-top: 1px solid #d9e0ec;
+            background: #ffffff;
+        }
+
+        .composer {
+            width: min(980px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        textarea {
+            min-height: 48px;
+            max-height: 180px;
+            resize: vertical;
+            border: 1px solid #c4ccda;
+            border-radius: 6px;
+            padding: 12px;
+            color: #172033;
+        }
+
+        button {
+            height: 48px;
+            border: 0;
+            border-radius: 6px;
+            padding: 0 18px;
+            background: #2f6f4e;
+            color: #ffffff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: #8fa69a;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 720px) {
+            header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .settings {
+                justify-content: stretch;
+            }
+
+            .settings > * {
+                flex: 1 1 160px;
+            }
+
+            main,
+            form {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .message {
+                max-width: 92%;
+            }
+
+            .composer {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Completions Chatbot</h1>
+    <div class="settings">
+        <select id="provider" aria-label="Provider">
+            <option value="open-ai">OpenAI</option>
+            <option value="open-router">OpenRouter</option>
+        </select>
+        <input id="model" aria-label="Model" value="gpt-4o-mini">
+    </div>
+</header>
+
+<main>
+    <section id="messages" aria-live="polite"></section>
+</main>
+
+<form id="chat-form">
+    <div class="composer">
+        <textarea id="message" aria-label="Message" placeholder="Type a message" required></textarea>
+        <button id="send" type="submit">Send</button>
+    </div>
+</form>
+
+<script>
+    const chatId = crypto.randomUUID();
+    const messages = document.querySelector("#messages");
+    const form = document.querySelector("#chat-form");
+    const messageInput = document.querySelector("#message");
+    const sendButton = document.querySelector("#send");
+    const providerInput = document.querySelector("#provider");
+    const modelInput = document.querySelector("#model");
+
+    let typingElement;
+
+    function appendMessage(kind, content) {
+        const element = document.createElement("div");
+        element.className = `message ${kind}`;
+        element.textContent = content;
+        messages.appendChild(element);
+        messages.scrollTop = messages.scrollHeight;
+        return element;
+    }
+
+    function clearTyping() {
+        if (typingElement) {
+            typingElement.remove();
+            typingElement = undefined;
+        }
+    }
+
+    function connectEvents() {
+        const events = new EventSource(`/api/chat/${chatId}/events`);
+
+        events.addEventListener("CHAT_MESSAGE", event => {
+            clearTyping();
+            const data = JSON.parse(event.data);
+            appendMessage(data.role === "user" ? "user" : "assistant", data.content || "");
+        });
+
+        events.addEventListener("TYPING", () => {
+            if (!typingElement) {
+                typingElement = appendMessage("status", "Assistant is typing...");
+            }
+        });
+
+        events.addEventListener("ERROR", event => {
+            clearTyping();
+            const data = JSON.parse(event.data);
+            appendMessage("error", data.content || "Request failed");
+            sendButton.disabled = false;
+        });
+    }
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const message = messageInput.value.trim();
+        if (!message) {
+            return;
+        }
+
+        messageInput.value = "";
+        sendButton.disabled = true;
+
+        try {
+            await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    chatId,
+                    provider: providerInput.value,
+                    model: modelInput.value,
+                    message
+                })
+            });
+        } catch (error) {
+            clearTyping();
+            appendMessage("error", error.message);
+        } finally {
+            sendButton.disabled = false;
+            messageInput.focus();
+        }
+    });
+
+    connectEvents();
+    appendMessage("status", `Chat ${chatId}`);
+</script>
+</body>
+</html>
