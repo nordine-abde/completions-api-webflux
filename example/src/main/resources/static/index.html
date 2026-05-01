@@ -105,6 +105,16 @@
             align-self: flex-start;
         }
 
+        .message.tool {
+            align-self: flex-start;
+            max-width: 88%;
+            border-color: #b8d4c5;
+            background: #eef8f1;
+            color: #183a2a;
+            font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            font-size: 13px;
+        }
+
         .message.status,
         .message.error {
             align-self: center;
@@ -205,6 +215,12 @@
             <option value="stream">Streaming</option>
             <option value="simple">Simple</option>
         </select>
+        <select id="tools" aria-label="Tools">
+            <option value="current_weather,support_hours">All tools</option>
+            <option value="">No tools</option>
+            <option value="current_weather">Weather</option>
+            <option value="support_hours">Support hours</option>
+        </select>
     </div>
 </header>
 
@@ -228,6 +244,7 @@
     const providerInput = document.querySelector("#provider");
     const modelInput = document.querySelector("#model");
     const modeInput = document.querySelector("#mode");
+    const toolsInput = document.querySelector("#tools");
 
     let typingElement;
     const assistantMessages = new Map();
@@ -246,6 +263,26 @@
             typingElement.remove();
             typingElement = undefined;
         }
+    }
+
+    function appendToolCall(content) {
+        let payload;
+        try {
+            payload = JSON.parse(content || "{}");
+        } catch (error) {
+            payload = {name: "tool", arguments: content || ""};
+        }
+
+        const name = payload.name || "tool";
+        let params = payload.arguments || "";
+        try {
+            params = JSON.stringify(JSON.parse(params), null, 2);
+        } catch (error) {
+            params = params || "{}";
+        }
+
+        console.log("TOOL_CALL", {name, params});
+        appendMessage("tool", `TOOL_CALL ${name}\n${params}`);
     }
 
     function connectEvents() {
@@ -287,6 +324,12 @@
             messageInput.focus();
         });
 
+        events.addEventListener("TOOL_CALL", event => {
+            clearTyping();
+            const data = JSON.parse(event.data);
+            appendToolCall(data.content);
+        });
+
         events.addEventListener("TYPING", () => {
             if (!typingElement) {
                 typingElement = appendMessage("status", "Assistant is typing...");
@@ -313,6 +356,10 @@
         sendButton.disabled = true;
 
         try {
+            const tools = toolsInput.value
+                ? toolsInput.value.split(",").map(tool => tool.trim()).filter(Boolean)
+                : [];
+
             await fetch("/api/chat", {
                 method: "POST",
                 headers: {
@@ -323,7 +370,8 @@
                     provider: providerInput.value,
                     model: modelInput.value,
                     mode: modeInput.value,
-                    message
+                    message,
+                    tools
                 })
             });
         } catch (error) {

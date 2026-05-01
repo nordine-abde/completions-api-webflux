@@ -4,6 +4,7 @@ import com.anordine.completions.api.webflux.helper.CompletionHelper;
 import com.anordine.completions.api.webflux.helper.history.IHistoryManager;
 import com.anordine.completions.api.webflux.helper.sse.ChatSseManager;
 import com.anordine.completions.api.webflux.helper.sse.SseEventMessage;
+import com.anordine.completions.api.webflux.helper.tool.CompletionToolRegistry;
 import com.anordine.completions.api.webflux.model.CompletionRequest;
 import com.anordine.completions.api.webflux.model.CompletionResponse;
 import com.anordine.completions.api.webflux.model.CompletionStreamChoice;
@@ -11,12 +12,15 @@ import com.anordine.completions.api.webflux.model.CompletionStreamDelta;
 import com.anordine.completions.api.webflux.model.CompletionStreamOptions;
 import com.anordine.completions.api.webflux.model.CompletionStreamResponse;
 import com.anordine.completions.api.webflux.model.CompletionStreamToolCall;
+import com.anordine.completions.api.webflux.model.enums.finish.CompletionFinishReason;
 import com.anordine.completions.api.webflux.model.enums.role.CompletionRole;
 import com.anordine.completions.api.webflux.model.message.CompletionAssistantMessage;
 import com.anordine.completions.api.webflux.model.message.CompletionChoices;
 import com.anordine.completions.api.webflux.model.message.CompletionUserMessage;
 import com.anordine.completions.api.webflux.model.tool.CompletionMessageCustomTool;
 import com.anordine.completions.api.webflux.model.tool.CompletionMessageFunctionTool;
+import com.anordine.completions.api.webflux.model.tool.CompletionMessageFunctionToolCall;
+import com.anordine.completions.api.webflux.model.tool.abs.CompletionToolCall;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +37,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -43,12 +49,14 @@ public class ChatbotController {
     private static final String OPEN_AI_PROVIDER = "open-ai";
     private static final String OPEN_ROUTER_PROVIDER = "open-router";
     private static final String DEEPSEEK_PROVIDER = "deepseek";
+    private static final tools.jackson.databind.ObjectMapper OBJECT_MAPPER = new tools.jackson.databind.ObjectMapper();
 
     private final CompletionHelper openAiHelper;
     private final CompletionHelper openRouterHelper;
     private final CompletionHelper deepSeekHelper;
     private final IHistoryManager historyManager;
     private final ChatSseManager sseManager;
+    private final CompletionToolRegistry toolRegistry;
     private final String defaultModel;
 
     public ChatbotController(
@@ -57,10 +65,12 @@ public class ChatbotController {
             @Qualifier("deepSeekWebClient") WebClient deepSeekWebClient,
             IHistoryManager historyManager,
             ChatSseManager sseManager,
+            CompletionToolRegistry toolRegistry,
             @Value("${example.chat.model:gpt-4o-mini}") String defaultModel
     ) {
         this.historyManager = historyManager;
         this.sseManager = sseManager;
+        this.toolRegistry = toolRegistry;
         this.defaultModel = defaultModel;
         this.openAiHelper = new CompletionHelper(openAiWebClient, historyManager);
         this.openRouterHelper = new CompletionHelper(openRouterWebClient, historyManager);
@@ -83,6 +93,7 @@ public class ChatbotController {
         String model = valueOrDefault(request.model(), defaultModel);
         String message = requireMessage(request.message());
         ChatMode mode = normalizeMode(request.mode());
+        List<String> tools = normalizeTools(request.tools());
         CompletionUserMessage userMessage = new CompletionUserMessage(message);
         UUID assistantMessageId = UUID.randomUUID();
 
@@ -93,7 +104,7 @@ public class ChatbotController {
                 ? sendStreaming(chatId, provider, model, userMessage, assistantMessageId)
                 : sendSimple(chatId, provider, model, userMessage, assistantMessageId);
 
-        return ensureChat(chatId.toString(), model)
+        return ensureChat(chatId.toString(), model, tools)
                 .then(response)
                 .doOnError(error -> sseManager.emitError(chatId, error.getMessage()))
                 .doFinally(signalType -> sseManager.setPending(chatId, false));
@@ -107,16 +118,26 @@ public class ChatbotController {
             UUID assistantMessageId
     ) {
         StringBuilder assistantContent = new StringBuilder();
+        ToolCallLogAccumulator toolCallLogAccumulator = new ToolCallLogAccumulator();
         sseManager.emitMessageStart(chatId, assistantMessageId, CompletionRole.ASSISTANT);
 
         return helper(provider).streamCompletionsApiWithHistory(chatId.toString(), userMessage)
-                .doOnNext(response -> emitStreamResponse(chatId, assistantMessageId, response, assistantContent))
-                .doOnComplete(() -> sseManager.emitMessageDone(
+                .doOnNext(response -> emitStreamResponse(
                         chatId,
                         assistantMessageId,
-                        assistantContent.toString(),
-                        CompletionRole.ASSISTANT
+                        response,
+                        assistantContent,
+                        toolCallLogAccumulator
                 ))
+                .doOnComplete(() -> {
+                    emitToolCallLogs(chatId, assistantMessageId, toolCallLogAccumulator.drain());
+                    sseManager.emitMessageDone(
+                            chatId,
+                            assistantMessageId,
+                            assistantContent.toString(),
+                            CompletionRole.ASSISTANT
+                    );
+                })
                 .then(Mono.fromSupplier(() -> new ChatResponse(
                         chatId,
                         provider,
@@ -151,6 +172,7 @@ public class ChatbotController {
                     if (response.getUsage() != null && sseManager.isEmitUsageEvents()) {
                         sseManager.emitUsage(chatId, response.getUsage());
                     }
+                    emitToolCallLogs(chatId, assistantMessageId, assistantToolCalls(assistantMessage));
                     sseManager.emitMessage(chatId, assistantMessageId, content, CompletionRole.ASSISTANT);
 
                     Mono<Void> addAssistantMessage = assistantMessage == null
@@ -182,15 +204,23 @@ public class ChatbotController {
         return choice == null ? null : choice.getMessage();
     }
 
-    private Mono<Void> ensureChat(String chatId, String model) {
+    private Mono<Void> ensureChat(String chatId, String model, List<String> tools) {
         return historyManager.getChat(chatId)
                 .then()
                 .onErrorResume(NoSuchElementException.class, exception -> historyManager.loadChat(
                         chatId,
-                        new CompletionRequest()
-                                .withModel(model)
-                                .withStreamOptions(new CompletionStreamOptions().withIncludeUsage(true))
+                        requestWithTools(model, tools)
                 ));
+    }
+
+    private CompletionRequest requestWithTools(String model, List<String> tools) {
+        CompletionRequest completionRequest = new CompletionRequest()
+                .withModel(model)
+                .withStreamOptions(new CompletionStreamOptions().withIncludeUsage(true));
+        if (!tools.isEmpty()) {
+            toolRegistry.addToolsTo(completionRequest, tools.toArray(String[]::new));
+        }
+        return completionRequest;
     }
 
     private CompletionHelper helper(String provider) {
@@ -241,11 +271,22 @@ public class ChatbotController {
         };
     }
 
+    private List<String> normalizeTools(List<String> tools) {
+        if (tools == null) {
+            return List.of();
+        }
+        return tools.stream()
+                .filter(tool -> tool != null && !tool.isBlank())
+                .map(String::trim)
+                .toList();
+    }
+
     private void emitStreamResponse(
             UUID chatId,
             UUID messageId,
             CompletionStreamResponse response,
-            StringBuilder assistantContent
+            StringBuilder assistantContent,
+            ToolCallLogAccumulator toolCallLogAccumulator
     ) {
         if (response.getUsage() != null && sseManager.isEmitUsageEvents()) {
             sseManager.emitUsage(chatId, response.getUsage());
@@ -264,28 +305,51 @@ public class ChatbotController {
             }
             if (delta.getToolCalls() != null) {
                 for (CompletionStreamToolCall toolCall : delta.getToolCalls()) {
-                    String toolCallContent = toolCallContent(toolCall);
-                    if (toolCallContent != null && !toolCallContent.isBlank()) {
-                        sseManager.emitToolCallChunk(chatId, messageId, toolCallContent, CompletionRole.ASSISTANT);
-                    }
+                    toolCallLogAccumulator.accept(toolCall);
                 }
+            }
+            if (isToolCallFinish(choice.getFinishReason())) {
+                emitToolCallLogs(chatId, messageId, toolCallLogAccumulator.drain());
             }
         }
     }
 
-    private String toolCallContent(CompletionStreamToolCall toolCall) {
-        if (toolCall == null) {
-            return null;
+    private boolean isToolCallFinish(CompletionFinishReason finishReason) {
+        return finishReason == CompletionFinishReason.TOOL_CALLS
+                || finishReason == CompletionFinishReason.FUNCTION_CALL;
+    }
+
+    private List<ToolCallLog> assistantToolCalls(CompletionAssistantMessage assistantMessage) {
+        if (assistantMessage == null || assistantMessage.getToolCalls() == null) {
+            return List.of();
         }
-        CompletionMessageFunctionTool function = toolCall.getFunction();
-        if (function != null) {
-            return function.getArguments() != null ? function.getArguments() : function.getName();
+        return assistantMessage.getToolCalls().stream()
+                .map(this::toolCallLog)
+                .filter(log -> log.name() != null && !log.name().isBlank())
+                .toList();
+    }
+
+    private ToolCallLog toolCallLog(CompletionToolCall toolCall) {
+        if (toolCall instanceof CompletionMessageFunctionToolCall functionToolCall
+                && functionToolCall.getFunction() != null) {
+            CompletionMessageFunctionTool function = functionToolCall.getFunction();
+            return new ToolCallLog(toolCall.getId(), "function", function.getName(), function.getArguments());
         }
-        CompletionMessageCustomTool custom = toolCall.getCustom();
-        if (custom != null) {
-            return custom.getInput() != null ? custom.getInput() : custom.getName();
+        return new ToolCallLog(toolCall.getId(), "tool", null, null);
+    }
+
+    private void emitToolCallLogs(UUID chatId, UUID messageId, List<ToolCallLog> toolCalls) {
+        for (ToolCallLog toolCall : toolCalls) {
+            sseManager.emitToolCall(chatId, messageId, toolCallContent(toolCall), CompletionRole.ASSISTANT);
         }
-        return toolCall.getId();
+    }
+
+    private String toolCallContent(ToolCallLog toolCall) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(toolCall);
+        } catch (Exception exception) {
+            return "{\"name\":\"" + toolCall.name() + "\",\"arguments\":\"" + toolCall.arguments() + "\"}";
+        }
     }
 
     private enum ChatMode {
@@ -299,9 +363,75 @@ public class ChatbotController {
         }
     }
 
-    public record ChatRequest(UUID chatId, String provider, String model, String mode, String message) {
+    public record ChatRequest(UUID chatId, String provider, String model, String mode, String message, List<String> tools) {
     }
 
     public record ChatResponse(UUID chatId, String provider, String model, String mode, String content) {
+    }
+
+    private record ToolCallLog(String id, String type, String name, String arguments) {
+    }
+
+    private static final class ToolCallLogAccumulator {
+
+        private final Map<Integer, MutableToolCallLog> toolCalls = new java.util.LinkedHashMap<>();
+
+        private void accept(CompletionStreamToolCall toolCall) {
+            if (toolCall == null) {
+                return;
+            }
+            MutableToolCallLog log = toolCalls.computeIfAbsent(toolCallIndex(toolCall), ignored -> new MutableToolCallLog());
+            if (toolCall.getId() != null) {
+                log.id = toolCall.getId();
+            }
+            if (toolCall.getType() != null) {
+                log.type = toolCall.getType().getValue();
+            }
+            CompletionMessageFunctionTool function = toolCall.getFunction();
+            if (function != null) {
+                log.type = "function";
+                if (function.getName() != null) {
+                    log.name = function.getName();
+                }
+                if (function.getArguments() != null) {
+                    log.arguments.append(function.getArguments());
+                }
+            }
+            CompletionMessageCustomTool custom = toolCall.getCustom();
+            if (custom != null) {
+                log.type = "custom";
+                if (custom.getName() != null) {
+                    log.name = custom.getName();
+                }
+                if (custom.getInput() != null) {
+                    log.arguments.append(custom.getInput());
+                }
+            }
+        }
+
+        private List<ToolCallLog> drain() {
+            List<ToolCallLog> logs = toolCalls.values().stream()
+                    .map(MutableToolCallLog::toLog)
+                    .filter(log -> log.name() != null && !log.name().isBlank())
+                    .toList();
+            toolCalls.clear();
+            return logs;
+        }
+
+        private static Integer toolCallIndex(CompletionStreamToolCall toolCall) {
+            return toolCall.getIndex() == null ? 0 : toolCall.getIndex();
+        }
+    }
+
+    private static final class MutableToolCallLog {
+
+        private String id;
+        private String type = "function";
+        private String name;
+        private final StringBuilder arguments = new StringBuilder();
+
+        private ToolCallLog toLog() {
+            return new ToolCallLog(id, type, name, arguments.toString());
+        }
     }
 }
