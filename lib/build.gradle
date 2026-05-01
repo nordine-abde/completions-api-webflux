@@ -30,6 +30,8 @@ dependencies {
 
     api libs.spring.webflux
     api libs.spring.redis
+    implementation 'com.github.victools:jsonschema-generator:4.38.0'
+    implementation 'com.github.victools:jsonschema-module-jackson:4.38.0'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

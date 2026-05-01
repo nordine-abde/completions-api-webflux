@@ -1,5 +1,6 @@
 package anordine.completions.api.webflux.example;
 
+import com.anordine.completions.api.webflux.configuration.CompletionToolConfiguration;
 import com.anordine.completions.api.webflux.configuration.HistoryConfiguration;
 import com.anordine.completions.api.webflux.configuration.SseConfiguration;
 import com.anordine.completions.api.webflux.configuration.WebClientConfiguration;
@@ -11,7 +12,8 @@ import org.springframework.context.annotation.Import;
 @Import({
 		WebClientConfiguration.class,
 		HistoryConfiguration.class,
-		SseConfiguration.class
+		SseConfiguration.class,
+		CompletionToolConfiguration.class
 })
 public class ExampleApplication {
 
