@@ -27,8 +27,21 @@
 # - `history.redis.port`: 6379
 # - `history.redis.prefix`: completions-api-webflux:history
 # - `history.redis.autoconfigure-serializers`: true
+#
+# SSE manager autoconfiguration is also opt-in and requires explicitly
+# importing `SseConfiguration`.
+# Defaults:
+# - `sse.autoconfigure`: false
+# - `sse.heartbeat-every`: 30s
+# - `sse.typing-every`: 3s
+# - `sse.max-back-pressure`: 256
 anordine:
   completions-api-webflux:
+    sse:
+      autoconfigure: false
+      heartbeat-every: 30s
+      typing-every: 3s
+      max-back-pressure: 256
     history:
       autoconfigure: false
       mode: memory

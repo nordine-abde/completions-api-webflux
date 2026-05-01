@@ -58,6 +58,23 @@ History defaults:
 
 When `history.mode=redis`, the default Redis serializer setup creates named `ReactiveRedisTemplate` beans for `CompletionRequest` and `CompletionMessage`. Set `history.redis.autoconfigure-serializers=false` to provide those Redis templates yourself.
 
+`SseConfiguration` provides an opt-in `ChatSseManager` bean with the same explicit-import style.
+
+Example:
+```java
+@Configuration
+@Import(SseConfiguration.class)
+class MyConfiguration {
+}
+```
+
+SSE defaults:
+
+- `anordine.completions-api-webflux.sse.autoconfigure=false`
+- `anordine.completions-api-webflux.sse.heartbeat-every=30s`
+- `anordine.completions-api-webflux.sse.typing-every=3s`
+- `anordine.completions-api-webflux.sse.max-back-pressure=256`
+
 ## Convenience Usage
 
 For straightforward text chat calls you can build requests fluently and wrap any configured compatible `WebClient` with `CompletionService`.

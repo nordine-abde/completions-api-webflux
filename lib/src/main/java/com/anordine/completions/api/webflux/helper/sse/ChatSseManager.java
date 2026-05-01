@@ -15,10 +15,16 @@ public class ChatSseManager {
 
     private final Map<UUID, ChatStream> chatStreams = new ConcurrentHashMap<>();
     private final Duration heartbeatEvery;
+    private final Duration typingEvery;
     private final int maxBackPressure;
 
     public ChatSseManager(Duration heartbeatEvery, int maxBackPressure) {
+        this(heartbeatEvery, Duration.ofSeconds(3), maxBackPressure);
+    }
+
+    public ChatSseManager(Duration heartbeatEvery, Duration typingEvery, int maxBackPressure) {
         this.heartbeatEvery = heartbeatEvery;
+        this.typingEvery = typingEvery;
         this.maxBackPressure = maxBackPressure;
     }
 
@@ -46,7 +52,7 @@ public class ChatSseManager {
                         : Flux.empty());
 
         Flux<@NonNull ServerSentEvent<@NonNull SseEventMessage>> typing =
-                Flux.interval(Duration.ofSeconds(3))
+                Flux.interval(typingEvery)
                         .filter(i -> stream.isPending())
                         .map(i -> typingEvent());
 
@@ -115,6 +121,18 @@ public class ChatSseManager {
     public boolean complete(UUID chatId) {
         ChatStream stream = chatStreams.remove(chatId);
         return stream == null || stream.complete().isSuccess();
+    }
+
+    public Duration getHeartbeatEvery() {
+        return heartbeatEvery;
+    }
+
+    public Duration getTypingEvery() {
+        return typingEvery;
+    }
+
+    public int getMaxBackPressure() {
+        return maxBackPressure;
     }
 
     private void touch(ChatStream stream) {
