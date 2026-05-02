@@ -7,8 +7,16 @@ import com.anordine.completions.api.webflux.model.CompletionRequest;
 import com.anordine.completions.api.webflux.model.message.CompletionUserMessage;
 import com.anordine.completions.api.webflux.model.message.abs.CompletionMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 
 import java.util.Map;
@@ -18,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HistoryConfigurationTest {
@@ -43,16 +52,54 @@ class HistoryConfigurationTest {
 
     @Test
     void shouldRegisterRedisHistoryManagerAndDefaultSerializerTemplates() {
-        try (AnnotationConfigApplicationContext context = createContext(Map.of(
+        try (AnnotationConfigApplicationContext context = createContextWithRedisConnectionFactory(Map.of(
                 "anordine.completions-api-webflux.history.autoconfigure", "true",
                 "anordine.completions-api-webflux.history.mode", "redis"
         ))) {
             IHistoryManager historyManager = context.getBean(IHistoryManager.class);
 
             assertInstanceOf(InRedisHistoryManager.class, historyManager);
-            assertTrue(context.containsBean(HistoryConfiguration.HISTORY_REDIS_CONNECTION_FACTORY_BEAN_NAME));
+            assertInstanceOf(ReactiveRedisConnectionFactory.class, context.getBean(ReactiveRedisConnectionFactory.class));
             assertTrue(context.containsBean(HistoryConfiguration.COMPLETION_REQUEST_REDIS_TEMPLATE_BEAN_NAME));
             assertTrue(context.containsBean(HistoryConfiguration.COMPLETION_MESSAGE_REDIS_TEMPLATE_BEAN_NAME));
+        }
+    }
+
+    @Test
+    void shouldRequireRedisConnectionFactoryWhenRedisModeIsEnabled() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(
+                "anordine.completions-api-webflux.history.autoconfigure", "true",
+                "anordine.completions-api-webflux.history.mode", "redis"
+        )));
+        context.register(HistoryConfiguration.class);
+
+        try {
+            assertThrows(BeanCreationException.class, context::refresh);
+        } finally {
+            context.close();
+        }
+    }
+
+    @Test
+    void shouldBackOffOnlyMatchingDefaultRedisTemplateByGenericType() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(
+                "anordine.completions-api-webflux.history.autoconfigure", "true",
+                "anordine.completions-api-webflux.history.mode", "redis"
+        )));
+        context.register(CustomRequestRedisTemplateConfiguration.class);
+        context.register(HistoryConfiguration.class);
+
+        try {
+            context.refresh();
+
+            assertInstanceOf(InRedisHistoryManager.class, context.getBean(IHistoryManager.class));
+            assertTrue(context.containsBean("customRequestRedis"));
+            assertFalse(context.containsBean(HistoryConfiguration.COMPLETION_REQUEST_REDIS_TEMPLATE_BEAN_NAME));
+            assertTrue(context.containsBean(HistoryConfiguration.COMPLETION_MESSAGE_REDIS_TEMPLATE_BEAN_NAME));
+        } finally {
+            context.close();
         }
     }
 
@@ -65,6 +112,7 @@ class HistoryConfigurationTest {
         )));
         InMemoryHistoryManager customHistoryManager = new InMemoryHistoryManager();
         context.registerBean(IHistoryManager.class, () -> customHistoryManager);
+        context.registerBean(ReactiveRedisConnectionFactory.class, () -> new LettuceConnectionFactory("127.0.0.1", 6379));
         context.register(HistoryConfiguration.class);
 
         try {
@@ -104,5 +152,39 @@ class HistoryConfigurationTest {
         context.register(HistoryConfiguration.class);
         context.refresh();
         return context;
+    }
+
+    private AnnotationConfigApplicationContext createContextWithRedisConnectionFactory(Map<String, Object> properties) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", properties));
+        context.registerBean(ReactiveRedisConnectionFactory.class, () -> new LettuceConnectionFactory("127.0.0.1", 6379));
+        context.register(HistoryConfiguration.class);
+        context.refresh();
+        return context;
+    }
+
+    private static <T> ReactiveRedisTemplate<String, T> redisTemplate(
+            ReactiveRedisConnectionFactory connectionFactory,
+            Class<T> valueType
+    ) {
+        RedisSerializationContext<String, T> context = RedisSerializationContext
+                .<String, T>newSerializationContext(RedisSerializer.string())
+                .value(new JacksonJsonRedisSerializer<>(valueType))
+                .build();
+        return new ReactiveRedisTemplate<>(connectionFactory, context);
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class CustomRequestRedisTemplateConfiguration {
+
+        @Bean
+        ReactiveRedisConnectionFactory redisConnectionFactory() {
+            return new LettuceConnectionFactory("127.0.0.1", 6379);
+        }
+
+        @Bean
+        ReactiveRedisTemplate<String, CompletionRequest> customRequestRedis(ReactiveRedisConnectionFactory connectionFactory) {
+            return redisTemplate(connectionFactory, CompletionRequest.class);
+        }
     }
 }

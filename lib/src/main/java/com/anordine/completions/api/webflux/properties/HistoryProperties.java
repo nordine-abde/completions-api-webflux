@@ -40,26 +40,7 @@ public class HistoryProperties {
 
     public static class Redis {
 
-        private String host = "127.0.0.1";
-        private int port = 6379;
         private String prefix = "completions-api-webflux:history";
-        private boolean autoconfigureSerializers = true;
-
-        public String getHost() {
-            return host;
-        }
-
-        public void setHost(String host) {
-            this.host = host != null ? host : "127.0.0.1";
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        public void setPort(int port) {
-            this.port = port;
-        }
 
         public String getPrefix() {
             return prefix;
@@ -69,20 +50,8 @@ public class HistoryProperties {
             this.prefix = prefix != null ? prefix : "completions-api-webflux:history";
         }
 
-        public String getKeyPrefix() {
-            return prefix;
-        }
-
         public void setKeyPrefix(String keyPrefix) {
             setPrefix(keyPrefix);
-        }
-
-        public boolean isAutoconfigureSerializers() {
-            return autoconfigureSerializers;
-        }
-
-        public void setAutoconfigureSerializers(boolean autoconfigureSerializers) {
-            this.autoconfigureSerializers = autoconfigureSerializers;
         }
     }
 }

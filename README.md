@@ -51,12 +51,9 @@ History defaults:
 
 - `anordine.completions-api-webflux.history.autoconfigure=false`
 - `anordine.completions-api-webflux.history.mode=memory`
-- `anordine.completions-api-webflux.history.redis.host=127.0.0.1`
-- `anordine.completions-api-webflux.history.redis.port=6379`
 - `anordine.completions-api-webflux.history.redis.prefix=completions-api-webflux:history`
-- `anordine.completions-api-webflux.history.redis.autoconfigure-serializers=true`
 
-When `history.mode=redis`, the default Redis serializer setup creates named `ReactiveRedisTemplate` beans for `CompletionRequest` and `CompletionMessage`. Set `history.redis.autoconfigure-serializers=false` to provide those Redis templates yourself.
+When `history.mode=redis`, the application must provide a `ReactiveRedisConnectionFactory`, typically via Spring Boot Redis configuration. The library creates default `ReactiveRedisTemplate<String, CompletionRequest>` and `ReactiveRedisTemplate<String, CompletionMessage>` beans when those generic bean types are missing. Define either template type yourself to customize serialization.
 
 `SseConfiguration` provides an opt-in `ChatSseManager` bean with the same explicit-import style.
 
@@ -138,7 +135,3 @@ If you use this library in its current state, prefer:
 - non-streaming or streamed chat completions usage
 - providers or gateways that accept OpenAI-compatible bearer-auth chat completions requests
 - currently modeled request and response features only
-
-## Task Tracking
-
-Implementation and deferral decisions are tracked under [docs/tasks](/home/abdessamad/apps/completions-api-webflux/docs/tasks).

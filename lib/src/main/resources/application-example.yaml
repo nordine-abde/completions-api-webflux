@@ -24,10 +24,7 @@
 # Defaults:
 # - `history.autoconfigure`: false
 # - `history.mode`: memory
-# - `history.redis.host`: 127.0.0.1
-# - `history.redis.port`: 6379
 # - `history.redis.prefix`: completions-api-webflux:history
-# - `history.redis.autoconfigure-serializers`: true
 #
 # SSE manager autoconfiguration is also opt-in and requires explicitly
 # importing `SseConfiguration`.
@@ -49,10 +46,7 @@ anordine:
       autoconfigure: false
       mode: memory
       redis:
-        host: 127.0.0.1
-        port: 6379
         prefix: completions-api-webflux:history
-        autoconfigure-serializers: true
     open-ai:
       autoconfigure: true
       secret-key: OPEN_AI_SECRET
