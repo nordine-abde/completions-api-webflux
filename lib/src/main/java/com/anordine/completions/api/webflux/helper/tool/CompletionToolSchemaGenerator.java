@@ -2,7 +2,6 @@ package com.anordine.completions.api.webflux.helper.tool;
 
 import com.anordine.completions.api.webflux.model.tool.CompletionFunctionDefinition;
 import com.anordine.completions.api.webflux.model.tool.CompletionFunctionTool;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -15,10 +14,8 @@ import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -26,13 +23,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public class CompletionToolSchemaGenerator {
 
     private static final TypeReference<Map<String, Object>> STRING_OBJECT_MAP = new TypeReference<>() {
     };
-    private static final Pattern OPEN_AI_FUNCTION_NAME = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
 
     private final ObjectMapper objectMapper;
     private final SchemaGenerator schemaGenerator;
@@ -59,9 +54,7 @@ public class CompletionToolSchemaGenerator {
         if (annotation == null) {
             throw new IllegalArgumentException("method must be annotated with @CompletionTool");
         }
-        if (Modifier.isStatic(method.getModifiers())) {
-            throw new IllegalArgumentException("@CompletionTool method must not be static: " + method);
-        }
+        CompletionToolMethodSupport.validateToolMethod(method);
 
         ObjectNode parameters = generateParametersSchema(method);
         if (annotation.strict()) {
@@ -69,7 +62,7 @@ public class CompletionToolSchemaGenerator {
         }
 
         CompletionFunctionDefinition function = new CompletionFunctionDefinition();
-        function.setName(resolveName(annotation, method));
+        function.setName(CompletionToolMethodSupport.resolveToolName(annotation, method));
         if (!annotation.description().isBlank()) {
             function.setDescription(annotation.description());
         }
@@ -83,7 +76,7 @@ public class CompletionToolSchemaGenerator {
         if (parameters.length == 0) {
             return emptyObjectSchema();
         }
-        if (parameters.length == 1 && !isSimpleType(parameters[0].getType())) {
+        if (parameters.length == 1 && !CompletionToolMethodSupport.isSimpleType(parameters[0].getType())) {
             ObjectNode schema = schemaGenerator.generateSchema(parameters[0].getType());
             schema.remove("$schema");
             return schema;
@@ -94,11 +87,11 @@ public class CompletionToolSchemaGenerator {
         ArrayNode required = objectMapper.createArrayNode();
 
         for (Parameter parameter : parameters) {
-            String name = resolveParameterName(parameter);
+            String name = CompletionToolMethodSupport.resolveParameterName(parameter);
             ObjectNode parameterSchema = schemaGenerator.generateSchema(parameter.getType());
             parameterSchema.remove("$schema");
             properties.set(name, parameterSchema);
-            if (isRequired(parameter)) {
+            if (CompletionToolMethodSupport.isRequired(parameter)) {
                 required.add(name);
             }
         }
@@ -207,43 +200,5 @@ public class CompletionToolSchemaGenerator {
             }
         }
         return false;
-    }
-
-    private String resolveName(CompletionTool annotation, Method method) {
-        String name = annotation.name().isBlank() ? method.getName() : annotation.name();
-        if (!OPEN_AI_FUNCTION_NAME.matcher(name).matches()) {
-            throw new IllegalArgumentException(
-                    "@CompletionTool name must contain only letters, digits, underscores, or dashes and be at most 64 characters: "
-                            + method
-            );
-        }
-        return name;
-    }
-
-    private String resolveParameterName(Parameter parameter) {
-        JsonProperty jsonProperty = parameter.getAnnotation(JsonProperty.class);
-        if (jsonProperty != null && !jsonProperty.value().isBlank()) {
-            return jsonProperty.value();
-        }
-        if (parameter.isNamePresent()) {
-            return parameter.getName();
-        }
-        throw new IllegalArgumentException(
-                "@CompletionTool method parameters must be compiled with -parameters or annotated with @JsonProperty"
-        );
-    }
-
-    private boolean isRequired(Parameter parameter) {
-        JsonProperty jsonProperty = parameter.getAnnotation(JsonProperty.class);
-        return parameter.getType().isPrimitive() || (jsonProperty != null && jsonProperty.required());
-    }
-
-    private boolean isSimpleType(Class<?> type) {
-        return ClassUtils.isPrimitiveOrWrapper(type)
-                || CharSequence.class.isAssignableFrom(type)
-                || Number.class.isAssignableFrom(type)
-                || Boolean.class == type
-                || Character.class == type
-                || type.isEnum();
     }
 }
