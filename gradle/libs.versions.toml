@@ -2,10 +2,20 @@
 # https://docs.gradle.org/current/userguide/version_catalogs.html#sec::toml-dependencies-format
 
 [versions]
+java = "25"
 junit-jupiter = "6.0.1"
-webflux-version = "4.0.5"
+jsonschema-generator = "4.38.0"
+spring-boot = "4.0.5"
+spring-dependency-management = "1.1.7"
 
 [libraries]
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
-spring-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "webflux-version"}
-spring-redis = {module = "org.springframework.boot:spring-boot-starter-data-redis-reactive", version.ref="webflux-version"}
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+jsonschema-generator = { module = "com.github.victools:jsonschema-generator", version.ref = "jsonschema-generator" }
+jsonschema-module-jackson = { module = "com.github.victools:jsonschema-module-jackson", version.ref = "jsonschema-generator" }
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
+spring-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis-reactive" }
+
+[plugins]
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }

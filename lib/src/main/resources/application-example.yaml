@@ -24,7 +24,7 @@
 # Defaults:
 # - `history.autoconfigure`: false
 # - `history.mode`: memory
-# - `history.redis.prefix`: completions-api-webflux:history
+# - `history.redis.prefix`: simplifier-webflux-ai:history
 #
 # SSE manager autoconfiguration is also opt-in and requires explicitly
 # importing `SseConfiguration`.
@@ -34,45 +34,48 @@
 # - `sse.typing-every`: 3s
 # - `sse.max-back-pressure`: 256
 # - `sse.emit-usage-events`: true
-anordine:
-  completions-api-webflux:
-    sse:
-      autoconfigure: false
-      heartbeat-every: 30s
-      typing-every: 3s
-      max-back-pressure: 256
-      emit-usage-events: true
-    history:
-      autoconfigure: false
-      mode: memory
-      redis:
-        prefix: completions-api-webflux:history
-    open-ai:
-      autoconfigure: true
-      secret-key: OPEN_AI_SECRET
-    groq:
-      autoconfigure: true
-      secret-key: GROQ_SECRET
-    gemini:
-      autoconfigure: true
-      secret-key: GEMINI_SECRET
-    open-router:
-      autoconfigure: true
-      secret-key: OPEN_ROUTER_SECRET
-    claude:
-      autoconfigure: true
-      secret-key: CLAUDE_SECRET
-    deepseek:
-      autoconfigure: true
-      secret-key: DEEPSEEK_SECRET
-    custom:
-      # Creates a bean named `localLlm`
-      local-llm:
-        autoconfigure: true
-        base-url: http://localhost:1234/v1
-        secret-key: LOCAL_SECRET
-      # Creates a bean named `partnerGateway`
-      partner-gateway:
-        autoconfigure: true
-        base-url: https://partner.example.com/openai/v1
-        secret-key: PARTNER_SECRET
+com:
+  anordine:
+    simplifier:
+      webflux:
+        ai:
+          sse:
+            autoconfigure: false
+            heartbeat-every: 30s
+            typing-every: 3s
+            max-back-pressure: 256
+            emit-usage-events: true
+          history:
+            autoconfigure: false
+            mode: memory
+            redis:
+              prefix: simplifier-webflux-ai:history
+          open-ai:
+            autoconfigure: true
+            secret-key: OPEN_AI_SECRET
+          groq:
+            autoconfigure: true
+            secret-key: GROQ_SECRET
+          gemini:
+            autoconfigure: true
+            secret-key: GEMINI_SECRET
+          open-router:
+            autoconfigure: true
+            secret-key: OPEN_ROUTER_SECRET
+          claude:
+            autoconfigure: true
+            secret-key: CLAUDE_SECRET
+          deepseek:
+            autoconfigure: true
+            secret-key: DEEPSEEK_SECRET
+          custom:
+            # Creates a bean named `localLlm`
+            local-llm:
+              autoconfigure: true
+              base-url: http://localhost:1234/v1
+              secret-key: LOCAL_SECRET
+            # Creates a bean named `partnerGateway`
+            partner-gateway:
+              autoconfigure: true
+              base-url: https://partner.example.com/openai/v1
+              secret-key: PARTNER_SECRET

@@ -6,43 +6,48 @@
  */
 
 plugins {
-    // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.spring.dependency.management)
 }
 
-group = 'com.anordine'
-version = '0.1.0-SNAPSHOT'
+group = providers.gradleProperty('libraryGroup').orElse('com.anordine').get()
+version = providers.gradleProperty('libraryVersion').orElse('0.1.0-SNAPSHOT').get()
 
 base {
-    archivesName = 'completions-api-webflux'
+    archivesName = 'simplifier-webflux-ai'
 }
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
 
-dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation libs.junit.jupiter
+dependencyManagement {
+    imports {
+        mavenBom libs.spring.boot.dependencies.get().toString()
+    }
+}
 
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+dependencies {
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.platform.launcher
 
     api libs.spring.webflux
     api libs.spring.redis
-    implementation 'com.github.victools:jsonschema-generator:4.38.0'
-    implementation 'com.github.victools:jsonschema-module-jackson:4.38.0'
+    implementation libs.jsonschema.generator
+    implementation libs.jsonschema.module.jackson
 }
 
-// Apply a specific Java toolchain to ease working on different environments.
 java {
+    withSourcesJar()
+    withJavadocJar()
+
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
     }
 }
 
 tasks.named('test') {
-    // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
 
@@ -56,4 +61,59 @@ tasks.register('redisIntegrationTest', Test) {
 
     include '**/InRedisHistoryManagerTest.class'
     environment 'REDIS_INTEGRATION_TESTS', 'true'
+}
+
+tasks.withType(org.gradle.api.publish.maven.tasks.GenerateMavenPom).configureEach {
+    notCompatibleWithConfigurationCache('Maven POM generation captures Gradle model objects in this build.')
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifactId = 'simplifier-webflux-ai'
+
+            pom {
+                name = 'simplifier-webflux-ai'
+                description = 'AI Chat Completions DTOs and WebFlux helpers for Spring applications'
+                url = 'https://github.com/nordine-abde/simplifier-webflux-ai'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://github.com/nordine-abde/simplifier-webflux-ai/blob/main/LICENSE'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/nordine-abde/simplifier-webflux-ai.git'
+                    developerConnection = 'scm:git:ssh://git@github.com:nordine-abde/simplifier-webflux-ai.git'
+                    url = 'https://github.com/nordine-abde/simplifier-webflux-ai'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            def owner = providers.gradleProperty('githubPackagesOwner')
+                    .orElse(System.getenv('GITHUB_REPOSITORY_OWNER') ?: 'nordine-abde')
+                    .get()
+            def repository = providers.gradleProperty('githubPackagesRepository')
+                    .orElse('simplifier-webflux-ai')
+                    .get()
+            url = uri("https://maven.pkg.github.com/${owner}/${repository}")
+
+            credentials {
+                username = providers.gradleProperty('gpr.user')
+                        .orElse(System.getenv('GITHUB_ACTOR') ?: System.getenv('USERNAME') ?: '')
+                        .get()
+                password = providers.gradleProperty('gpr.key')
+                        .orElse(System.getenv('GITHUB_TOKEN') ?: System.getenv('TOKEN') ?: '')
+                        .get()
+            }
+        }
+    }
 }

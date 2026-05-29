@@ -1,4 +1,4 @@
-# completions-api-webflux
+# simplifier-webflux-ai
 
 Java library for OpenAI Chat Completions DTOs plus Spring WebFlux `WebClient` configuration for compatible providers.
 
@@ -17,8 +17,8 @@ This repository currently includes:
 `WebClientConfiguration` provides:
 
 - a fallback `WebClient.Builder` bean named `builder` when the application does not already define one
-- opt-in provider clients controlled by `anordine.completions-api-webflux.<provider>.autoconfigure=true`
-- dynamic registration of custom `WebClient` beans from `anordine.completions-api-webflux.custom.<name>`
+- opt-in provider clients controlled by `com.anordine.simplifier.webflux.ai.<provider>.autoconfigure=true`
+- dynamic registration of custom `WebClient` beans from `com.anordine.simplifier.webflux.ai.custom.<name>`
 
 Custom client property names are converted to camelCase bean names. For example:
 
@@ -27,7 +27,7 @@ Custom client property names are converted to camelCase bean names. For example:
 
 The example properties file is at [lib/src/main/resources/application-example.yaml](lib/src/main/resources/application-example.yaml).
 
-Important: this repository does not currently publish Spring Boot auto-configuration metadata such as `AutoConfiguration.imports`. Consumers must register or import [WebClientConfiguration](lib/src/main/java/com/anordine/completions/api/webflux/configuration/WebClientConfiguration.java) explicitly.
+Important: this repository does not currently publish Spring Boot auto-configuration metadata such as `AutoConfiguration.imports`. Consumers must register or import [WebClientConfiguration](lib/src/main/java/com/anordine/simplifier/webflux/ai/configuration/WebClientConfiguration.java) explicitly.
 
 Example:
 ```java
@@ -49,9 +49,9 @@ class MyConfiguration {
 
 History defaults:
 
-- `anordine.completions-api-webflux.history.autoconfigure=false`
-- `anordine.completions-api-webflux.history.mode=memory`
-- `anordine.completions-api-webflux.history.redis.prefix=completions-api-webflux:history`
+- `com.anordine.simplifier.webflux.ai.history.autoconfigure=false`
+- `com.anordine.simplifier.webflux.ai.history.mode=memory`
+- `com.anordine.simplifier.webflux.ai.history.redis.prefix=simplifier-webflux-ai:history`
 
 When `history.mode=redis`, the application must provide a `ReactiveRedisConnectionFactory`, typically via Spring Boot Redis configuration. The library creates default `ReactiveRedisTemplate<String, CompletionRequest>` and `ReactiveRedisTemplate<String, CompletionMessage>` beans when those generic bean types are missing. Define either template type yourself to customize serialization.
 
@@ -67,11 +67,11 @@ class MyConfiguration {
 
 SSE defaults:
 
-- `anordine.completions-api-webflux.sse.autoconfigure=false`
-- `anordine.completions-api-webflux.sse.heartbeat-every=30s`
-- `anordine.completions-api-webflux.sse.typing-every=3s`
-- `anordine.completions-api-webflux.sse.max-back-pressure=256`
-- `anordine.completions-api-webflux.sse.emit-usage-events=true`
+- `com.anordine.simplifier.webflux.ai.sse.autoconfigure=false`
+- `com.anordine.simplifier.webflux.ai.sse.heartbeat-every=30s`
+- `com.anordine.simplifier.webflux.ai.sse.typing-every=3s`
+- `com.anordine.simplifier.webflux.ai.sse.max-back-pressure=256`
+- `com.anordine.simplifier.webflux.ai.sse.emit-usage-events=true`
 
 ## Convenience Usage
 

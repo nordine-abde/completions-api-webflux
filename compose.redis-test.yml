@@ -1,4 +1,4 @@
-name: completions-api-webflux-test
+name: simplifier-webflux-ai-test
 
 services:
   redis:
