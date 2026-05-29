@@ -25,6 +25,9 @@
 # - `history.autoconfigure`: false
 # - `history.mode`: memory
 # - `history.redis.prefix`: simplifier-webflux-ai:history
+# For Postgres-backed persistent history with Redis cache, define an
+# `InRedisPostgresHistoryManager` bean manually and provide mapper, retrieve,
+# and save functions for your entity/repository.
 #
 # SSE manager autoconfiguration is also opt-in and requires explicitly
 # importing `SseConfiguration`.

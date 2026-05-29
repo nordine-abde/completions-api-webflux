@@ -55,6 +55,28 @@ History defaults:
 
 When `history.mode=redis`, the application must provide a `ReactiveRedisConnectionFactory`, typically via Spring Boot Redis configuration. The library creates default `ReactiveRedisTemplate<String, CompletionRequest>` and `ReactiveRedisTemplate<String, CompletionMessage>` beans when those generic bean types are missing. Define either template type yourself to customize serialization.
 
+For durable history with Redis as a best-effort cache, define an `InRedisPostgresHistoryManager` bean manually. Postgres is treated as the authoritative storage: `loadChat` and `addMessage` fail when the save function fails, while Redis read/write errors are ignored and fall back to Postgres. `getChat` reads Redis first, falls back to Postgres, and refreshes Redis when possible. `evict` clears only the Redis cache.
+
+Example:
+```java
+@Bean
+IHistoryManager historyManager(
+        ReactiveRedisTemplate<String, CompletionRequest> requestRedis,
+        ReactiveRedisTemplate<String, CompletionMessage> messageRedis,
+        ChatHistoryRepository repository
+) {
+    return new InRedisPostgresHistoryManager<>(
+            "my-app:history:",
+            requestRedis,
+            messageRedis,
+            (chatId, request) -> new ChatHistoryEntity(chatId, request),
+            ChatHistoryEntity::toCompletionRequest,
+            repository::findById,
+            repository::save
+    );
+}
+```
+
 `SseConfiguration` provides an opt-in `ChatSseManager` bean with the same explicit-import style.
 
 Example:
